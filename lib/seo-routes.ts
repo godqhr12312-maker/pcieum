@@ -61,7 +61,7 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   {
     "path": "/board/FREE",
     "title": "PC방 사장님 자유게시판",
-    "description": "PC방 사장님들의 일상과 경험, 궁금한 이야기를 나누는 자유게시판입니다. 피씨이음 회원들과 게시글과 댓글로 소통하세요."
+    "description": "PC방 사장님들의 일상과 경험, 궁금한 이야기를 나누는 자유게시판입니다. PC방 운영과 일상에 관한 다양한 이야기를 살펴보세요."
   },
   {
     "path": "/board/TIPS",
@@ -81,12 +81,12 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   {
     "path": "/board/GAME",
     "title": "게임 소식 · PC방 게임 이야기",
-    "description": "PC방에서 즐기는 게임과 업데이트, 이용 경험을 나누는 공간입니다. 피씨이음 회원들과 게임 소식을 공유하고 의견을 남겨보세요."
+    "description": "PC방에서 즐기는 게임과 업데이트, 이용 경험을 나누는 공간입니다. PC방에서 관심을 두는 게임과 이용자들의 이야기를 살펴보세요."
   },
   {
     "path": "/board/CUSTOMER",
     "title": "피씨이음 고객센터 · 문의와 제안",
-    "description": "피씨이음 서비스에 관한 문의, 개선 제안, 광고·제휴 문의를 남기는 공개 게시판입니다. 개인정보나 민감한 내용은 게시하지 마세요."
+    "description": "피씨이음 서비스 이용과 고객지원에 관한 안내를 확인하는 공간입니다. 서비스에 관한 소식과 게시판의 안내 내용을 살펴보세요."
   },
   {
     "path": "/slot",
@@ -96,12 +96,12 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   {
     "path": "/terms",
     "title": "피씨이음 이용 안내",
-    "description": "피씨이음 회원 가입과 게시물 작성, 커뮤니티 이용 및 거래 시 확인할 사항을 안내합니다. 무료 미니게임과 서비스 운영에 관한 내용도 확인하세요."
+    "description": "피씨이음의 매물 검색과 게시판 열람, 서비스 이용 및 거래 시 확인할 사항을 안내합니다. 무료 미니게임과 서비스 운영에 관한 내용도 확인하세요."
   },
   {
     "path": "/privacy",
     "title": "피씨이음 개인정보 안내",
-    "description": "피씨이음에서 사용하는 로그인 식별자, 프로필, 게시물, 댓글, 관심 매물과 사진의 저장 방식 및 개인정보 관련 안내를 확인하세요."
+    "description": "피씨이음의 공개 콘텐츠와 현재 서비스에서 제공하는 정보 입력 기능, 호스팅을 통한 서비스 제공 및 개인정보 관련 안내를 확인하세요."
   },
   {
     "path": "/pc-room?type=SELL",

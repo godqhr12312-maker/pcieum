@@ -162,11 +162,12 @@ export async function runSeoCheck(options = {}) {
   }
   async function validatePage(path, kind = routeKind(new URL(path, base)), { fixtureTitle, fixtureBody } = {}) {
     const { response, body, url } = await request(path);
-    const expectedStatus = kind === "missing" ? 404 : 200;
+    // Removed member screens may return 404; still validate their noindex policy.
+    const expectedStatus = kind === "missing" || kind === "private" && response.status === 404 ? 404 : 200;
     if (!check(response.status === expectedStatus, `expected HTTP ${expectedStatus}, received ${response.status}`, path)) return null;
     check(/text\/html/.test(response.headers.get("content-type") || ""), "HTML content type", path);
     const html = inspectHtml(body);
-    if (kind === "missing") {
+    if (expectedStatus === 404) {
       const robots = `${html.named("robots").join(",")},${response.headers.get("x-robots-tag") || ""}`.toLowerCase();
       check(/(?:^|[,\s])noindex(?:$|[,\s])/.test(robots), "404 is intentionally noindex", path);
       pages.push({ path, status: response.status, policy: "noindex", title: html.titles[0], canonical: html.canonical[0] });

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { getChatGPTUser, type ChatGPTUser } from "@/app/chatgpt-auth";
 import { database, getPost, getProfile, isAdmin, StorageUnavailableError } from "@/lib/store";
+import { MEMBER_FEATURES_ENABLED } from "@/lib/member-features";
 import type { Post, Profile } from "@/lib/types";
 
 export class ApiError extends Error {
@@ -30,6 +31,7 @@ export function verifyOrigin(request: Request): void {
 }
 
 export async function requireUser(request?: Request): Promise<ChatGPTUser> {
+  if (!MEMBER_FEATURES_ENABLED) throw new ApiError(403, "회원 기능은 현재 제공하지 않습니다.", "MEMBER_FEATURES_DISABLED");
   if (request) verifyOrigin(request);
   const user = await getChatGPTUser();
   if (!user) throw new ApiError(401, "로그인 후 이용할 수 있습니다.", "AUTH_REQUIRED");

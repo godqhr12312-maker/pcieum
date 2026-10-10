@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Check, Heart, LoaderCircle, Menu, MessageCircle, PencilLine, Share2, Trash2, Upload, X } from "lucide-react";
+import { MEMBER_FEATURES_ENABLED } from "@/lib/member-features";
 
 type Kind = "listing" | "market" | "job" | "board";
 type PostStatus = "ACTIVE" | "SOLD" | "HIDDEN";
@@ -59,11 +60,11 @@ function json(method: string, body: unknown): RequestInit {
 }
 
 function problemFrom(error: unknown): Problem {
-  if (error instanceof ApiError && error.code === "PROFILE_REQUIRED") {
+  if (MEMBER_FEATURES_ENABLED && error instanceof ApiError && error.code === "PROFILE_REQUIRED") {
     window.location.assign(`/join?return_to=${encodeURIComponent(window.location.pathname + window.location.search)}`);
     return { message: "프로필 등록 화면으로 이동합니다." };
   }
-  return { message: error instanceof Error ? error.message : "연결을 확인한 뒤 다시 시도해 주세요.", login: error instanceof ApiError && error.status === 401 };
+  return { message: error instanceof Error ? error.message : "연결을 확인한 뒤 다시 시도해 주세요.", login: MEMBER_FEATURES_ENABLED && error instanceof ApiError && error.status === 401 };
 }
 
 function subscribeToLocation(callback: () => void) {
@@ -73,6 +74,7 @@ function subscribeToLocation(callback: () => void) {
 
 function SignInLink({ children = "로그인하기" }: { children?: React.ReactNode }) {
   const returnTo = useSyncExternalStore(subscribeToLocation, () => window.location.pathname + window.location.search, () => "/");
+  if (!MEMBER_FEATURES_ENABLED) return null;
   return <a href={`/signin-with-chatgpt?return_to=${encodeURIComponent(returnTo)}`} target="_top" className="text-link">{children}</a>;
 }
 
@@ -95,6 +97,7 @@ export function PostEditor({ post, kind: initialKind = "listing", category: init
   const [problem, setProblem] = useState<Problem | null>(null);
   const [uploadMessage, setUploadMessage] = useState("");
   const uploadRef = useRef<HTMLInputElement>(null);
+  if (!MEMBER_FEATURES_ENABLED) return null;
 
   function changeKind(value: Kind) {
     setKind(value);
@@ -179,6 +182,7 @@ export function ProfileForm({ initialNickname = "", initialRegion = "", returnTo
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [saved, setSaved] = useState(false);
+  if (!MEMBER_FEATURES_ENABLED) return null;
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
@@ -208,7 +212,7 @@ export function DetailActions({ postId, initialFavorite = false, canEdit = false
   const [shareUrl, setShareUrl] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   async function toggleFavorite() {
-    if (busy || demo) return;
+    if (!MEMBER_FEATURES_ENABLED || busy || demo) return;
     setBusy("favorite"); setProblem(null); setMessage("");
     try { const result = await api<{ favorited: boolean }>(`/api/posts/${encodeURIComponent(postId)}/favorite`, { method: "POST" }); if (typeof result.favorited !== "boolean") throw new Error("관심 글 저장 상태를 확인하지 못했습니다."); setFavorite(result.favorited); setMessage(result.favorited ? "관심 글에 저장했습니다." : "관심 글에서 해제했습니다."); }
     catch (error) { setProblem(problemFrom(error)); }
@@ -221,14 +225,14 @@ export function DetailActions({ postId, initialFavorite = false, canEdit = false
     catch { setShareUrl(url); setMessage("아래 주소를 선택해 복사해 주세요."); }
   }
   async function markSold() {
-    if (busy || demo) return;
+    if (!MEMBER_FEATURES_ENABLED || busy || demo) return;
     setBusy("sold"); setProblem(null); setMessage("");
     try { await api(`/api/posts/${encodeURIComponent(postId)}`, json("PATCH", { status: "SOLD" })); setCurrentStatus("SOLD"); setMessage("거래 완료로 변경했습니다."); window.location.reload(); }
     catch (error) { setProblem(problemFrom(error)); }
     finally { setBusy(""); }
   }
   async function removePost() {
-    if (busy || demo || !canEdit) return;
+    if (!MEMBER_FEATURES_ENABLED || busy || demo || !canEdit) return;
     setBusy("delete"); setProblem(null); setMessage("");
     try {
       const result = await api<{ ok: boolean }>(`/api/posts/${encodeURIComponent(postId)}`, { method: "DELETE" });
@@ -239,16 +243,16 @@ export function DetailActions({ postId, initialFavorite = false, canEdit = false
   }
   return <div className="detail-actions-wrap">
     <div className="detail-actions">
-      <button className={`btn ${favorite ? "btn-primary" : "btn-secondary"}`} type="button" onClick={() => void toggleFavorite()} disabled={!!busy || demo} aria-pressed={favorite}><Heart size={17} fill={favorite ? "currentColor" : "none"} aria-hidden="true" />{favorite ? "관심 글 저장됨" : "관심 글 저장"}</button>
+      {MEMBER_FEATURES_ENABLED && <button className={`btn ${favorite ? "btn-primary" : "btn-secondary"}`} type="button" onClick={() => void toggleFavorite()} disabled={!!busy || demo} aria-pressed={favorite}><Heart size={17} fill={favorite ? "currentColor" : "none"} aria-hidden="true" />{favorite ? "관심 글 저장됨" : "관심 글 저장"}</button>}
       <button className="btn btn-secondary" type="button" onClick={() => void share()}><Share2 size={17} aria-hidden="true" />공유하기</button>
-      {canEdit && !demo && <>
+      {MEMBER_FEATURES_ENABLED && canEdit && !demo && <>
         <a className="btn btn-secondary" href={`/write?edit=${encodeURIComponent(postId)}`}><PencilLine size={17} aria-hidden="true" />수정하기</a>
         {currentStatus === "ACTIVE" && kind !== "board" && <button type="button" className="btn btn-secondary" disabled={!!busy} onClick={() => void markSold()}><BusyLabel busy={busy === "sold"}>{kind === "job" ? "모집 완료로 변경" : "거래 완료로 변경"}</BusyLabel></button>}
         <button type="button" className="btn btn-danger" disabled={!!busy} onClick={() => { setConfirmDelete(previous => !previous); setProblem(null); }} aria-expanded={confirmDelete} aria-controls="confirm-post-delete"><Trash2 size={16} aria-hidden="true" />삭제</button>
       </>}
     </div>
-    {confirmDelete && canEdit && !demo && <div id="confirm-post-delete" className="alert" role="group" aria-label="게시글 삭제 확인"><p>이 게시글을 삭제할까요? 공개 목록에서 숨겨지며, 작성자 화면에서는 복구할 수 없습니다.</p><div className="form-actions"><button type="button" className="btn btn-secondary" disabled={!!busy} onClick={() => setConfirmDelete(false)}>취소</button><button type="button" className="btn btn-danger" disabled={!!busy} onClick={() => void removePost()}><BusyLabel busy={busy === "delete"}>{busy === "delete" ? "삭제 중…" : "게시글 삭제"}</BusyLabel></button></div></div>}
-    {demo && <p className="muted">화면을 둘러보기 위한 예시 글입니다. 관심 글 저장과 댓글은 실제 게시글에서 이용할 수 있습니다.</p>}
+    {MEMBER_FEATURES_ENABLED && confirmDelete && canEdit && !demo && <div id="confirm-post-delete" className="alert" role="group" aria-label="게시글 삭제 확인"><p>이 게시글을 삭제할까요? 공개 목록에서 숨겨지며, 작성자 화면에서는 복구할 수 없습니다.</p><div className="form-actions"><button type="button" className="btn btn-secondary" disabled={!!busy} onClick={() => setConfirmDelete(false)}>취소</button><button type="button" className="btn btn-danger" disabled={!!busy} onClick={() => void removePost()}><BusyLabel busy={busy === "delete"}>{busy === "delete" ? "삭제 중…" : "게시글 삭제"}</BusyLabel></button></div></div>}
+    {demo && <p className="muted">화면을 둘러보기 위한 예시 글입니다.{MEMBER_FEATURES_ENABLED && " 관심 글 저장과 댓글은 실제 게시글에서 이용할 수 있습니다."}</p>}
     <ErrorNotice problem={problem} /><p className="action-feedback muted" role="status">{message}</p>
     {shareUrl && <label className="field">공유 주소<input className="input" value={shareUrl} readOnly onFocus={event => event.target.select()} /></label>}
   </div>;
@@ -262,13 +266,13 @@ export function Comments({ postId, initialComments = [], userId, demo = false }:
   const [message, setMessage] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || demo || !body.trim()) return;
+    if (!MEMBER_FEATURES_ENABLED || busy || demo || !body.trim()) return;
     setBusy(true); setProblem(null); setMessage("");
     try { const result = await api<{ comment: Comment }>(`/api/posts/${encodeURIComponent(postId)}/comments`, json("POST", { body: body.trim() })); if (!result.comment?.id) throw new Error("댓글 저장 결과를 확인하지 못했습니다."); setComments(previous => [...previous, result.comment]); setBody(""); setMessage("댓글을 등록했습니다."); }
     catch (error) { setProblem(problemFrom(error)); }
     finally { setBusy(false); }
   }
-  return <section className="comments-section"><h2 className="section-heading"><MessageCircle size={19} aria-hidden="true" />댓글 <span className="count">{comments.length}</span></h2>{comments.length ? <ul className="comment-list">{comments.map(comment => <li className="comment" key={comment.id}><div className="comment-meta"><strong>{comment.authorName}</strong><time dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time></div><p style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{comment.body}</p></li>)}</ul> : <div className="empty-state compact">아직 댓글이 없습니다. 첫 이야기를 남겨 주세요.</div>}{demo ? <p className="muted">예시 글에는 댓글을 등록할 수 없습니다.</p> : userId ? <form className="comment-form" onSubmit={submit}><label className="field"><span className="sr-only">댓글 내용</span><textarea className="input" value={body} onChange={event => { setBody(event.target.value); setMessage(""); }} rows={3} maxLength={2000} required disabled={busy} placeholder="서로를 존중하는 따뜻한 댓글을 남겨 주세요." /></label><div className="form-actions"><span className="muted">{body.length} / 2,000</span><button className="btn btn-primary" type="submit" disabled={busy || !body.trim()}><BusyLabel busy={busy}>{busy ? "등록 중…" : "댓글 등록"}</BusyLabel></button></div></form> : <div className="alert">댓글을 남기려면 <SignInLink>로그인</SignInLink>해 주세요.</div>}<ErrorNotice problem={problem} /><p className="muted" role="status">{message}</p></section>;
+  return <section className="comments-section"><h2 className="section-heading"><MessageCircle size={19} aria-hidden="true" />댓글 <span className="count">{comments.length}</span></h2>{comments.length ? <ul className="comment-list">{comments.map(comment => <li className="comment" key={comment.id}><div className="comment-meta"><strong>{comment.authorName}</strong><time dateTime={comment.createdAt}>{formatDate(comment.createdAt)}</time></div><p style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{comment.body}</p></li>)}</ul> : <div className="empty-state compact">아직 댓글이 없습니다.{MEMBER_FEATURES_ENABLED && " 첫 이야기를 남겨 주세요."}</div>}{MEMBER_FEATURES_ENABLED && (demo ? <p className="muted">예시 글에는 댓글을 등록할 수 없습니다.</p> : userId ? <form className="comment-form" onSubmit={submit}><label className="field"><span className="sr-only">댓글 내용</span><textarea className="input" value={body} onChange={event => { setBody(event.target.value); setMessage(""); }} rows={3} maxLength={2000} required disabled={busy} placeholder="서로를 존중하는 따뜻한 댓글을 남겨 주세요." /></label><div className="form-actions"><span className="muted">{body.length} / 2,000</span><button className="btn btn-primary" type="submit" disabled={busy || !body.trim()}><BusyLabel busy={busy}>{busy ? "등록 중…" : "댓글 등록"}</BusyLabel></button></div></form> : <div className="alert">댓글을 남기려면 <SignInLink>로그인</SignInLink>해 주세요.</div>)}<ErrorNotice problem={problem} /><p className="muted" role="status">{message}</p></section>;
 }
 
 function formatDate(value: string) {
@@ -308,12 +312,14 @@ export function AdminPanel() {
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState("ALL");
   async function load() {
+    if (!MEMBER_FEATURES_ENABLED) return;
     setLoading(true); setProblem(null);
     try { const result = await api<{ posts: EditablePost[] }>("/api/admin/posts"); setPosts(result.posts || []); }
     catch (error) { setProblem(problemFrom(error)); }
     finally { setLoading(false); }
   }
   useEffect(() => {
+    if (!MEMBER_FEATURES_ENABLED) return;
     const controller = new AbortController();
     api<{ posts: EditablePost[] }>("/api/admin/posts", { signal: controller.signal })
       .then(result => { if (!controller.signal.aborted) setPosts(result.posts || []); })
@@ -322,13 +328,14 @@ export function AdminPanel() {
     return () => controller.abort();
   }, []);
   async function moderate(post: EditablePost, status: PostStatus) {
-    if (busyId || post.demo) return;
+    if (!MEMBER_FEATURES_ENABLED || busyId || post.demo) return;
     setBusyId(post.id); setProblem(null); setMessage("");
     try { await api(`/api/admin/posts/${encodeURIComponent(post.id)}`, json("PATCH", { status })); setPosts(previous => previous.map(item => item.id === post.id ? { ...item, status } : item)); setMessage(`“${post.title}” 게시글을 ${status === "HIDDEN" ? "숨김" : status === "SOLD" ? "거래 완료" : "공개"} 상태로 변경했습니다.`); }
     catch (error) { setProblem(problemFrom(error)); }
     finally { setBusyId(null); }
   }
   const filtered = posts.filter(post => filter === "ALL" || post.status === filter);
+  if (!MEMBER_FEATURES_ENABLED) return null;
   return <section className="admin-panel">
     <div className="form-actions"><label className="field">표시 상태<select className="input" value={filter} onChange={event => setFilter(event.target.value)}><option value="ALL">전체 게시글</option><option value="ACTIVE">공개 중</option><option value="SOLD">거래 완료</option><option value="HIDDEN">숨김</option></select></label><button type="button" className="btn btn-secondary" disabled={loading || !!busyId} onClick={() => void load()}>새로고침</button></div>
     <ErrorNotice problem={problem} /><p role="status" className="muted">{message}</p>
@@ -353,5 +360,5 @@ export function MobileMenu({ signedIn = false }: { signedIn?: boolean }) {
     document.addEventListener("keydown", close); document.addEventListener("pointerdown", outside);
     return () => { document.removeEventListener("keydown", close); document.removeEventListener("pointerdown", outside); };
   }, [open]);
-  return <div className="mobile-menu" ref={ref}><button type="button" className="icon-button mobile-menu-toggle" aria-label={open ? "메뉴 닫기" : "전체 메뉴 열기"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(previous => !previous)}>{open ? <X size={23} /> : <Menu size={23} />}</button>{open && <nav id="mobile-navigation" className="mobile-navigation" aria-label="모바일 메뉴" onClick={() => setOpen(false)}><a href="/pc-room">PC방 매매</a><a href="/market">중고장터</a><a href="/job">구인구직</a><a href="/board/FREE">커뮤니티</a><a href="/board/TIPS">운영 노하우</a><a href="/slot">무료 슬롯 체험</a>{signedIn ? <><a href="/mypage">내 정보</a><a href="/signout-with-chatgpt?return_to=/" target="_top">로그아웃</a></> : <><a href="/signin-with-chatgpt?return_to=/" target="_top">로그인</a><a href="/join">회원가입</a></>}<a href="/write" className="mobile-write"><PencilLine size={16} aria-hidden="true" />글쓰기</a></nav>}</div>;
+  return <div className="mobile-menu" ref={ref}><button type="button" className="icon-button mobile-menu-toggle" aria-label={open ? "메뉴 닫기" : "전체 메뉴 열기"} aria-expanded={open} aria-controls="mobile-navigation" onClick={() => setOpen(previous => !previous)}>{open ? <X size={23} /> : <Menu size={23} />}</button>{open && <nav id="mobile-navigation" className="mobile-navigation" aria-label="모바일 메뉴" onClick={() => setOpen(false)}><a href="/pc-room">PC방 매매</a><a href="/market">중고장터</a><a href="/job">구인구직</a><a href="/board/FREE">커뮤니티</a><a href="/board/TIPS">운영 노하우</a><a href="/slot">무료 슬롯 체험</a>{MEMBER_FEATURES_ENABLED && <>{signedIn ? <><a href="/mypage">내 정보</a><a href="/signout-with-chatgpt?return_to=/" target="_top">로그아웃</a></> : <><a href="/signin-with-chatgpt?return_to=/" target="_top">로그인</a><a href="/join">회원가입</a></>}<a href="/write" className="mobile-write"><PencilLine size={16} aria-hidden="true" />글쓰기</a></>}</nav>}</div>;
 }

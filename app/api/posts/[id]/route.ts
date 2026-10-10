@@ -1,5 +1,6 @@
 import { getChatGPTUser } from "@/app/chatgpt-auth";
 import { database, getPost, isAdmin, listComments } from "@/lib/store";
+import { MEMBER_FEATURES_ENABLED } from "@/lib/member-features";
 import { ApiError, authorizeCategory, bodyJson, editablePost, handleApi, json, requireUser, updatePostSchema, validateImages, validatePostCombination } from "@/app/api/_shared";
 
 type Context = { params: Promise<{ id: string }> };
@@ -11,7 +12,7 @@ export async function GET(_request: Request, context: Context) {
     const post = await getPost(id, { includeHidden: true });
     if (!post) throw new ApiError(404, "게시글을 찾을 수 없습니다.");
     if (post.status === "HIDDEN") {
-      const user = await getChatGPTUser();
+      const user = MEMBER_FEATURES_ENABLED ? await getChatGPTUser() : null;
       if (!user || (user.userId !== post.authorId && !isAdmin(user.userId))) throw new ApiError(404, "게시글을 찾을 수 없습니다.");
     }
     return json({ post, comments: await listComments(id) });
