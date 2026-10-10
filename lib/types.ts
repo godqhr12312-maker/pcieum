@@ -1,0 +1,31 @@
+export type PostKind = "listing" | "market" | "job" | "board";
+export type PostStatus = "ACTIVE" | "SOLD" | "HIDDEN";
+export type Post = {
+  id: string;
+  kind: PostKind;
+  category: string;
+  type: string;
+  title: string;
+  body: string;
+  region: string;
+  district: string;
+  price: number | null;
+  premium?: number | null;
+  deposit?: number | null;
+  seats: number | null;
+  contact?: string;
+  images: string[];
+  authorId: string;
+  authorName: string;
+  status: PostStatus;
+  createdAt: string;
+  updatedAt: string;
+  views: number;
+  demo?: boolean;
+};
+export type Profile = { id: string; nickname: string; region: string };
+export type Comment = { id: string; postId: string; authorId: string; authorName: string; body: string; createdAt: string };
+export type PostFilters = {
+  kind?: string; category?: string; type?: string; region?: string; q?: string;
+  sort?: string; page?: number; limit?: number; authorId?: string; includeHidden?: boolean;
+};
