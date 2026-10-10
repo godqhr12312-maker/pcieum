@@ -67,12 +67,11 @@ const crossOrigin = await fetch(new URL("/api/posts", base), {
 });
 requests++;
 assert.equal(crossOrigin.status, 403, "Cross-origin writes must also stay blocked");
-const visible = await call("/api/posts/sample-seoul", "GET", {});
-assert.equal(visible.response.status, 200);
-assert.equal(visible.data.post.id, "sample-seoul");
-assert.equal(visible.data.post.demo, true);
-const list = await call("/api/posts?limit=1", "GET", {});
+const removed = await call("/api/posts/sample-seoul", "GET", {});
+assert.equal(removed.response.status, 404, "Removed examples must no longer be served");
+const list = await call("/api/posts?limit=100", "GET", {});
 assert.equal(list.response.status, 200);
 assert.ok(Array.isArray(list.data.posts));
+assert.ok(list.data.posts.every((post) => !post.demo && !post.id.startsWith("sample-")), "Public lists must contain actual records only");
 
 console.log(JSON.stringify({ passed: true, requests, identities: identities.length, mutationRoutes: mutations.length, hiddenPostChecked: Boolean(hiddenId) }));

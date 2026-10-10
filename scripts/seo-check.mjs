@@ -95,7 +95,7 @@ function routeKind(url) {
     if (url.searchParams.has("page") && !/^[1-9]\d*$/.test(url.searchParams.get("page"))) return "unknown";
     return "public";
   }
-  if (parts.length === 2 && Object.hasOwn(CATEGORIES, parts[0]) || parts.length === 3 && parts[0] === "board" && BOARDS.includes(parts[1])) return parts.at(-1).startsWith("sample-") ? "demo" : "post";
+  if (parts.length === 2 && Object.hasOwn(CATEGORIES, parts[0]) || parts.length === 3 && parts[0] === "board" && BOARDS.includes(parts[1])) return "post";
   return "unknown";
 }
 function schemaNodes(value, result = []) {
@@ -343,7 +343,8 @@ export async function runSeoCheck(options = {}) {
     enqueue('/?filter=ALL&filter=ADULT_SELL', 'public', 'repeated query regression');
     enqueue('/pc-room?q=first&q=second', 'filtered', 'repeated query regression');
     for (const path of PRIVATE) enqueue(path, "private", "intentional noindex");
-    for (const path of ["/pc-room?q=SEO", "/pc-room?region=서울", "/pc-room?sort=popular", "/pc-room/sample-seoul", "/missing-route-for-seo-check"]) enqueue(path, path.includes("missing-route") ? "missing" : routeKind(new URL(path, base)), "intentional noindex");
+    for (const path of ["/pc-room?q=SEO", "/pc-room?region=서울", "/pc-room?sort=popular"]) enqueue(path, routeKind(new URL(path, base)), "intentional noindex");
+    for (const path of ["/pc-room/sample-seoul", "/pc-room/sample-busan", "/missing-route-for-seo-check"]) enqueue(path, "missing", "removed or missing page");
     let cursor = 0;
     while (cursor < queue.length) {
       if (!check(cursor < config.maxPages, `crawl exceeds --max-pages=${config.maxPages}; ${queue.length - cursor} queued URLs remain (not a pass)`, "crawl")) break;

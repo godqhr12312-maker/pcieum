@@ -1,5 +1,4 @@
 import { env } from "cloudflare:workers";
-import { samplePosts } from "@/lib/sample-data";
 import type { Comment, Post, PostFilters, Profile } from "@/lib/types";
 
 export class StorageUnavailableError extends Error {
@@ -23,22 +22,6 @@ function mapPost(row: PostRow): Post {
   return { ...row, images };
 }
 
-function sampleMatches(post: Post, f: PostFilters): boolean {
-  return (!f.kind || post.kind === f.kind) && (!f.category || post.category === f.category)
-    && (!f.type || post.type === f.type) && (!f.region || post.region === f.region)
-    && (!f.authorId || post.authorId === f.authorId) && (f.includeHidden || post.status !== "HIDDEN")
-    && (!f.q || `${post.title} ${post.body} ${post.region} ${post.district}`.toLocaleLowerCase().includes(f.q.toLocaleLowerCase()));
-}
-
-function comparePosts(sort?: string) {
-  return (a: Post, b: Post) => {
-    if (sort === "popular" || sort === "views") return b.views - a.views || b.createdAt.localeCompare(a.createdAt);
-    if (sort === "price-asc" || sort === "price_asc") return (a.price ?? Number.MAX_SAFE_INTEGER) - (b.price ?? Number.MAX_SAFE_INTEGER);
-    if (sort === "price-desc" || sort === "price_desc") return (b.price ?? -1) - (a.price ?? -1);
-    return b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id);
-  };
-}
-
 export async function listPosts(filters: PostFilters = {}): Promise<{ posts: Post[]; total: number }> {
   const db = database();
   const clauses: string[] = [];
@@ -59,24 +42,19 @@ export async function listPosts(filters: PostFilters = {}): Promise<{ posts: Pos
   const limit = Math.min(100, Math.max(1, Math.floor(filters.limit ?? 24)));
   const page = Math.min(1000, Math.max(1, Math.floor(filters.page ?? 1)));
   const offset = (page - 1) * limit;
-  const demos = samplePosts.filter((post) => sampleMatches(post, filters)).map((post) => ({ ...post, demo: true }));
   const [count, result] = await Promise.all([
     db.prepare(`SELECT COUNT(*) AS total FROM posts p${where}`).bind(...values).first<{ total: number }>(),
-    db.prepare(`${postSelect}${where} ORDER BY ${order} LIMIT ?`).bind(...values, offset + limit).all<PostRow>(),
+    db.prepare(`${postSelect}${where} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values, limit, offset).all<PostRow>(),
   ]);
-  const combined = [...result.results.map(mapPost), ...demos].sort(comparePosts(sort));
-  return { posts: combined.slice(offset, offset + limit), total: (count?.total ?? 0) + demos.length };
+  return { posts: result.results.map(mapPost), total: count?.total ?? 0 };
 }
 
 export async function getPost(id: string, options: { includeHidden?: boolean } = {}): Promise<Post | null> {
-  const demo = samplePosts.find((post) => post.id === id);
-  if (demo) return { ...demo, demo: true };
   const row = await database().prepare(`${postSelect} WHERE p.id = ?${options.includeHidden ? "" : " AND p.status != 'HIDDEN'"}`).bind(id).first<PostRow>();
   return row ? mapPost(row) : null;
 }
 
 export async function listComments(postId: string): Promise<Comment[]> {
-  if (samplePosts.some((post) => post.id === postId)) return [];
   const result = await database().prepare(`SELECT c.id, c.post_id AS postId, c.author_id AS authorId, u.nickname AS authorName, c.body, c.created_at AS createdAt
     FROM comments c JOIN profiles u ON u.id = c.author_id JOIN posts p ON p.id = c.post_id
     WHERE c.post_id = ? AND p.status != 'HIDDEN' ORDER BY c.created_at ASC LIMIT 200`).bind(postId).all<Comment>();
@@ -103,6 +81,5 @@ export async function listFavorites(userId: string): Promise<Post[]> {
 }
 
 export async function recordPostView(id: string): Promise<void> {
-  if (samplePosts.some((post) => post.id === id)) return;
   await database().prepare("UPDATE posts SET views = views + 1 WHERE id = ? AND status != 'HIDDEN'").bind(id).run();
 }
