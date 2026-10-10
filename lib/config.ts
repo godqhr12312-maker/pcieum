@@ -1,7 +1,15 @@
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 export const BRAND = '피씨이음';
-export const DESCRIPTION = 'PC방 매매부터 중고장터, 구인구직, 사장님 커뮤니티까지. 피씨이음에서 새로운 시작을 만나보세요.';
+export const HOME_TITLE = '피씨이음 - PC방 매매 | 성인PC방 매물 · 구인구직 · 무료슬롯';
+export const DESCRIPTION = '피씨이음 - PC방 매매 플랫폼. 성인PC방 매물, 일반PC방 매물, PC방 구인구직, 중고장터와 무료슬롯을 한 곳에서 만나보세요.';
+export const SEO_KEYWORDS = [
+  'PC방매매', 'PC방팝니다', 'PC방삽니다', '성인피시', '성인피씨', '성인pc',
+  '성인피시방', '성인피시매물', '성인피시방매물', '성인pc매물', '성인pc매입',
+  '성인피씨방매매', '성인피씨방매물', '성인pc방매매', '성인pc방팝니다', '성인pc방삽니다',
+  '일반pc방매매', 'PC방구인구직', 'PC방중고장터', 'PC방인테리어', '게임카페매매',
+  '피씨방매물', '피씨방팝니다', '피씨방삽니다', '무료슬롯', '슬롯게임', BRAND,
+];
 export async function origin() {
   if (env.SITE_URL) {
     const configured = new URL(env.SITE_URL);

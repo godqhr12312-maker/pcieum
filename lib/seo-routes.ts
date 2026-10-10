@@ -40,8 +40,8 @@ export const CATALOG_QUERY_OPTIONS = {
 export const PUBLIC_PAGES: readonly PublicPage[] = [
   {
     "path": "/",
-    "title": "PC방 매매 · 중고장터 · 구인구직",
-    "description": "PC방 매매부터 중고 물품 거래, 구인구직, 사장님 커뮤니티까지. 피씨이음에서 지역별 매물과 운영 정보를 확인하세요."
+    "title": "피씨이음 - PC방 매매 | 성인PC방 매물 · 구인구직 · 무료슬롯",
+    "description": "피씨이음 - PC방 매매 플랫폼. 성인PC방 매물, 일반PC방 매물, PC방 구인구직, 중고장터와 무료슬롯을 한 곳에서 만나보세요."
   },
   {
     "path": "/pc-room",

@@ -1,10 +1,10 @@
 import {listPosts} from '@/lib/store';
-import {BRAND,DESCRIPTION,origin,jsonLd} from '@/lib/config';
+import {BRAND,HOME_TITLE,DESCRIPTION,origin,jsonLd} from '@/lib/config';
 import {createPageMetadata} from '@/lib/seo';
 import {normalizeQuery,type SearchQuery} from '@/lib/query';
 import {Icon,PostRow,Empty} from './components/UI';
 export const dynamic='force-dynamic';
-export async function generateMetadata(){return createPageMetadata({title:'피씨이음 | PC방 매매 · 중고장터 · 구인구직',description:DESCRIPTION,path:'/'});}
+export async function generateMetadata(){return createPageMetadata({title:HOME_TITLE,description:DESCRIPTION,path:'/'});}
 const quickLinks=[['shop','PC방 팝니다','성인·일반·기타업종 매물 정보','/pc-room?type=SELL'],['search','PC방 삽니다','PC방 구매 희망 조건 살펴보기','/pc-room?type=BUY'],['box','중고장터','PC방 용품 · 집기 거래','/market'],['briefcase','구인구직','채용공고 · 인재 정보','/job']];
 export default async function Home({searchParams}:{searchParams:Promise<SearchQuery>}){
  const base=await origin();const params=normalizeQuery(await searchParams); const filter=params.filter||'ALL'; const [category,type]=filter.split('_');

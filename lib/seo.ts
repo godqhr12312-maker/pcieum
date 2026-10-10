@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { BRAND, categories, indexable, origin, postUrl, priceText } from './config';
+import { BRAND, SEO_KEYWORDS, categories, indexable, origin, postUrl, priceText } from './config';
 import type { Post } from './types';
 
 type PageSeo = {
@@ -27,6 +27,7 @@ export async function createPageMetadata(input: PageSeo): Promise<Metadata> {
     metadataBase: new URL(base),
     title: { absolute: title },
     description,
+    keywords: SEO_KEYWORDS,
     alternates: { canonical },
     robots: { index: allow, follow: true, googleBot: { index: allow, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 } },
     openGraph: {

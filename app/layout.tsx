@@ -2,13 +2,13 @@ import type {Metadata,Viewport} from 'next';
 import {Logo,Icon} from './components/UI';
 import {MobileMenu} from './components/Features';
 import {getChatGPTUser,chatGPTSignInPath,chatGPTSignOutPath} from './chatgpt-auth';
-import {BRAND,DESCRIPTION,origin,jsonLd} from '@/lib/config';
+import {BRAND,HOME_TITLE,DESCRIPTION,origin,jsonLd} from '@/lib/config';
 import {createPageMetadata} from '@/lib/seo';
 import {MEMBER_FEATURES_ENABLED} from '@/lib/member-features';
 import './globals.css';
 export const viewport:Viewport={width:'device-width',initialScale:1,themeColor:'#111c32'};
 export async function generateMetadata():Promise<Metadata>{
- const shared=await createPageMetadata({title:'피씨이음 | PC방 매매 · 중고장터 · 구인구직',description:DESCRIPTION,path:'/'});
+ const shared=await createPageMetadata({title:HOME_TITLE,description:DESCRIPTION,path:'/'});
  return {...shared,icons:{icon:'/favicon.svg'},verification:{google:'hHVEphiWyIsmJPQDQX0sfuk3EW837_626_FpIdX4ZmQ'}};
 }
 const nav=[{title:'PC방 팝니다',href:'/pc-room?type=SELL',items:[['성인PC방','/pc-room?type=SELL&category=ADULT'],['일반PC방','/pc-room?type=SELL&category=NORMAL'],['기타업종','/pc-room?type=SELL&category=OTHER']]},{title:'PC방 삽니다',href:'/pc-room?type=BUY',items:[['성인PC방','/pc-room?type=BUY&category=ADULT'],['일반PC방','/pc-room?type=BUY&category=NORMAL']]},{title:'중고장터',href:'/market',items:[['PC · 부품','/market?category=PC'],['모니터','/market?category=MONITOR'],['의자 · 집기','/market?category=CHAIR']]},{title:'구인구직',href:'/job',items:[['채용정보','/job?type=HIRE'],['인재정보','/job?type=RESUME']]},{title:'커뮤니티',href:'/board/FREE',items:[['자유게시판','/board/FREE'],['매장 노하우','/board/TIPS']]},{title:'공지사항',href:'/board/NOTICE',items:[['공지사항','/board/NOTICE'],['최신 뉴스','/board/NEWS'],['게임 소식','/board/GAME']]}];
