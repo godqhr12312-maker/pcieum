@@ -10,6 +10,14 @@ export type HtmlCache = {
   match(request: Request): Promise<Response | undefined>;
   put(request: Request, response: Response): Promise<void>;
 };
+export type HtmlCacheStorage = { open(name: string): Promise<HtmlCache> };
+
+/** Workers for Platforms disables caches.default; named caches are isolated. */
+export async function openPublicHtmlCache(storage: HtmlCacheStorage): Promise<HtmlCache | undefined> {
+  try { return await storage.open('pcieum-public-html-v1'); }
+  catch { return undefined; }
+}
+
 export type HttpPolicyOptions = {
   development?: boolean;
   siteOrigin: string;

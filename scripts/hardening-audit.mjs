@@ -43,7 +43,7 @@ check('hero img has alt, dimensions and fetchpriority', parsed.images.some(img =
 const mainText = parsed.markup.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1]?.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() || '';
 check('visible homepage guidance is substantive', mainText.length >= 1500, { characters: mainText.length });
 
-const css = first.body.match(/href="([^"?]+-[a-z0-9_-]+\.css)(?:\?[^"]*)?"/i)?.[1];
+const css = first.body.match(/<link\b(?=[^>]*rel="stylesheet")[^>]*href="([^"]+)"[^>]*>/i)?.[1];
 check('hashed CSS discovered', !!css);
 for (const asset of [css, parsed.images.find(img => /hero\./.test(img.src))?.src].filter(Boolean)) {
   const result = await get(asset);

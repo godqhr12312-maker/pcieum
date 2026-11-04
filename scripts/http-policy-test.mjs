@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import {
-  withHttpPolicy, isPublicHtmlRequest, canonicalRedirectUrl, HTML_EDGE_TTL,
+  withHttpPolicy, openPublicHtmlCache, isPublicHtmlRequest, canonicalRedirectUrl, HTML_EDGE_TTL,
   HTML_BROWSER_CACHE_CONTROL, IMMUTABLE_CACHE_CONTROL,
 } from '../lib/http-policy.ts';
 
@@ -32,6 +32,30 @@ function renderer({ status = 200, robots = 'index, follow', extraHeaders = {}, e
   };
   return { render, calls: () => calls };
 }
+
+test('Workers for Platforms opens the named cache without accessing disabled caches.default', async () => {
+  const cache = mockCache();
+  const names = [];
+  const storage = {
+    get default() { throw new Error('Namespaced scripts cannot use caches.default'); },
+    async open(name) { names.push(name); return cache; },
+  };
+  const opened = await openPublicHtmlCache(storage);
+  assert.equal(opened, cache);
+  assert.deepEqual(names, ['pcieum-public-html-v1']);
+  const app = renderer();
+  await withHttpPolicy(req(), app.render, { ...settings, cache: opened });
+  const response = await withHttpPolicy(req(), app.render, { ...settings, cache: opened });
+  assert.equal(response.headers.get('x-pcieum-cache'), 'HIT');
+  assert.equal(app.calls(), 1);
+});
+
+test('named cache initialization failure does not fail page rendering', async () => {
+  const cache = await openPublicHtmlCache({ open: async () => { throw new Error('unavailable'); } });
+  assert.equal(cache, undefined);
+  const response = await withHttpPolicy(req(), renderer().render, { ...settings, cache });
+  assert.equal(response.status, 200);
+});
 
 test('anonymous HTML MISS -> HIT, 300-second internal TTL, fresh CSP nonce and hydration payload', async () => {
   const cache = mockCache();

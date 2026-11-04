@@ -1,12 +1,12 @@
 import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
-import { withHttpPolicy, type HtmlCache } from "../lib/http-policy";
+import { withHttpPolicy, openPublicHtmlCache, type HtmlCacheStorage } from "../lib/http-policy";
 import { PUBLIC_PAGES } from "../lib/seo-routes";
 import { MEMBER_FEATURES_ENABLED } from "../lib/member-features";
 
 export default {
-  fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
     // the auxiliary service binding are absent from production builds.
@@ -34,7 +34,7 @@ export default {
       memberFeaturesEnabled: MEMBER_FEATURES_ENABLED,
       hasRequestCapabilities: Boolean(binding),
       buildId: process.env.__VINEXT_BUILD_ID,
-      cache: import.meta.env.DEV ? undefined : (caches as unknown as { default: HtmlCache }).default,
+      cache: import.meta.env.DEV ? undefined : await openPublicHtmlCache(caches as unknown as HtmlCacheStorage),
       waitUntil: (task) => ctx.waitUntil(task),
     });
   },
