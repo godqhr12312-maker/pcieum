@@ -93,6 +93,7 @@ function routeKind(url) {
     if (url.searchParams.get("type") && !TYPES[parts[0]]?.includes(url.searchParams.get("type"))) return "unknown";
     if (url.searchParams.get("category") && !CATEGORIES[parts[0]]?.includes(url.searchParams.get("category"))) return "unknown";
     if (url.searchParams.has("page") && !/^[1-9]\d*$/.test(url.searchParams.get("page"))) return "unknown";
+    if (url.searchParams.get("type") || url.searchParams.get("category")) return "filtered";
     return "public";
   }
   if (parts.length === 2 && Object.hasOwn(CATEGORIES, parts[0]) || parts.length === 3 && parts[0] === "board" && BOARDS.includes(parts[1])) return "post";
@@ -338,8 +339,14 @@ export async function runSeoCheck(options = {}) {
     if (!config.preview) for (const path of PUBLIC) check(sitemapUrls.has(comparable(new URL(path, siteOrigin))), "public route present in sitemap", path);
     else check(sitemapUrls.size === 0, "preview sitemap contains no indexable pages", "/sitemap.xml");
     for (const path of PUBLIC) enqueue(path, "public", "required");
+    // Every type/category filter is intentionally noindex and absent from the sitemap.
+    const { FILTER_PAGES } = await import("data:text/javascript;base64," + Buffer.from((await import("typescript")).default.transpileModule(await readFile(new URL("../lib/seo-routes.ts", import.meta.url), "utf8"), {compilerOptions:{module:99,target:9}}).outputText).toString("base64"));
+    for (const {path} of FILTER_PAGES) {
+      check(!sitemapUrls.has(comparable(new URL(path, siteOrigin))), "browse filter absent from sitemap", path);
+      enqueue(path, "filtered", "filter policy");
+    }
     const variants = ["/pc-room?type=SELL", "/pc-room?type=BUY", "/pc-room?type=SELL&category=NORMAL", "/pc-room?type=BUY&category=ADULT", "/market?category=PC", "/market?category=MONITOR", "/job?type=HIRE", "/job?type=RESUME", "/pc-room?page=1", "/pc-room?sort=latest"];
-    for (const path of config.smoke ? variants.slice(-2) : variants) enqueue(path, "public", "required query");
+    for (const path of config.smoke ? variants.slice(-2) : variants) enqueue(path, routeKind(new URL(path, base)), "required query");
     enqueue('/?filter=ALL&filter=ADULT_SELL', 'public', 'repeated query regression');
     enqueue('/pc-room?q=first&q=second', 'filtered', 'repeated query regression');
     for (const path of PRIVATE) enqueue(path, "private", "intentional noindex");

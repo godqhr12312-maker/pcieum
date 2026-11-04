@@ -1,6 +1,9 @@
 import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
+import { withHttpPolicy, type HtmlCache } from "../lib/http-policy";
+import { PUBLIC_PAGES } from "../lib/seo-routes";
+import { MEMBER_FEATURES_ENABLED } from "../lib/member-features";
 
 export default {
   fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
@@ -23,6 +26,16 @@ export default {
         },
       };
     }
-    return runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+    return withHttpPolicy(request, (renderRequest) =>
+      runWithConnectorBinding(binding, () => handler.fetch(renderRequest, env, ctx)), {
+      development: import.meta.env.DEV,
+      siteOrigin: env.SITE_URL || "https://pcieum.com",
+      publicPaths: PUBLIC_PAGES.map(page => page.path),
+      memberFeaturesEnabled: MEMBER_FEATURES_ENABLED,
+      hasRequestCapabilities: Boolean(binding),
+      buildId: process.env.__VINEXT_BUILD_ID,
+      cache: import.meta.env.DEV ? undefined : (caches as unknown as { default: HtmlCache }).default,
+      waitUntil: (task) => ctx.waitUntil(task),
+    });
   },
 };

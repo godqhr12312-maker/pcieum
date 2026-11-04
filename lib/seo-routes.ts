@@ -1,4 +1,4 @@
-export type PublicPage = { path: string; title: string; description: string };
+export type PublicPage = { path: string; title: string; description: string; lastModified?: string };
 
 export const CATALOG_QUERY_OPTIONS = {
   "/pc-room": {
@@ -36,8 +36,8 @@ export const CATALOG_QUERY_OPTIONS = {
   }
 } as const;
 
-/** Shared canonical route registry for metadata and the XML sitemap. */
-export const PUBLIC_PAGES: readonly PublicPage[] = [
+/** Metadata includes browse filters, which intentionally stay out of search. */
+export const PAGE_METADATA: readonly PublicPage[] = [
   {
     "path": "/",
     "title": "피씨이음 - PC방 매매 | 성인PC방 매물 · 구인구직 · 무료슬롯",
@@ -239,3 +239,10 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
     "description": "PC방 일자리를 찾는 구직자의 게시글을 확인하세요. 희망 근무 지역과 업무 경험을 나누고 매장에 필요한 인재를 만나보세요."
   }
 ];
+
+// Content revision, not build/request time. Update only when these pages change.
+export const PUBLIC_PAGES: readonly PublicPage[] = PAGE_METADATA
+  .filter(page => !page.path.includes('?'))
+  .map(page => ({ ...page, lastModified: '2026-11-04' }));
+
+export const FILTER_PAGES = PAGE_METADATA.filter(page => page.path.includes('?'));

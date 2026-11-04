@@ -21,7 +21,7 @@ export async function createPageMetadata(input: PageSeo): Promise<Metadata> {
   const title = input.title.includes(BRAND) ? input.title : `${input.title} | ${BRAND}`;
   const description = cleanDescription(input.description);
   if (!title.trim() || !description) throw new Error('SEO title and description are required.');
-  const image = new URL(input.image || '/hero.jpg', `${base}/`).href;
+  const image = new URL(input.image || '/hero.93b030a133d9.jpg', `${base}/`).href;
   const allow = indexable() && input.index !== false;
   return {
     metadataBase: new URL(base),
@@ -72,4 +72,9 @@ export function validCatalogQuery(section: string, query: Record<string, string>
   const cats = section === 'pc-room' ? ['ADULT', 'NORMAL', 'OTHER'] : section === 'market' ? ['PC', 'MONITOR', 'CHAIR', 'OTHER'] : ['HIRE', 'RESUME'];
   if (query.type && !types.includes(query.type) || query.category && !cats.includes(query.category)) return false;
   return !(section === 'job' && query.type && query.category && query.type !== query.category);
+}
+
+/** Faceted browse results are useful to visitors, but are not search landing pages. */
+export function isFilteredCatalog(query: Record<string, string>): boolean {
+  return !!query.type || !!query.category || !!query.q || !!query.region || !!query.sort && query.sort !== 'latest';
 }
