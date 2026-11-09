@@ -1,5 +1,10 @@
 export type PublicPage = { path: string; title: string; description: string; lastModified?: string };
 
+export const ADULT_PC_LANDING_PATHS = {
+  SELL: '/pc-room?type=SELL&category=ADULT',
+  BUY: '/pc-room?type=BUY&category=ADULT',
+} as const;
+
 export const CATALOG_QUERY_OPTIONS = {
   "/pc-room": {
     "types": [
@@ -36,12 +41,12 @@ export const CATALOG_QUERY_OPTIONS = {
   }
 } as const;
 
-/** Metadata includes browse filters, which intentionally stay out of search. */
+/** Metadata also covers browse filters; PUBLIC_PAGES selects search landing pages. */
 export const PAGE_METADATA: readonly PublicPage[] = [
   {
     "path": "/",
-    "title": "피씨이음 - PC방 매매 | 성인PC방 매물 · 구인구직 · 무료슬롯",
-    "description": "피씨이음 - PC방 매매 플랫폼. 성인PC방 매물, 일반PC방 매물, PC방 구인구직, 중고장터와 무료슬롯을 한 곳에서 만나보세요."
+    "title": "성인pc 정보·매물 찾기 | 피씨이음",
+    "description": "성인pc 정보를 찾는 분을 위한 피씨이음. 성인PC방 매물과 구매 희망 정보를 살펴보고, 지역·보증금·월세·권리금·시설 조건을 비교하는 방법과 중고장터·구인구직 정보를 확인하세요."
   },
   {
     "path": "/pc-room",
@@ -130,8 +135,8 @@ export const PAGE_METADATA: readonly PublicPage[] = [
   },
   {
     "path": "/pc-room?type=SELL&category=ADULT",
-    "title": "성인 PC방 팝니다 · PC방 매물 정보",
-    "description": "성인 PC방 팝니다 게시글을 모아 확인하세요. 피씨이음에서 지역, 희망 가격, 좌석 수와 거래 조건을 살펴보고 매장 거래 정보를 나눌 수 있습니다."
+    "title": "성인pc 매물·운영 정보",
+    "description": "성인pc 매물을 살펴볼 때 확인할 지역, 시설, 가격 항목과 운영 정보를 안내합니다. 피씨이음에서 성인pc 판매 목록과 거래 전 확인 사항을 함께 살펴보세요."
   },
   {
     "path": "/pc-room?type=SELL&category=NORMAL",
@@ -145,8 +150,8 @@ export const PAGE_METADATA: readonly PublicPage[] = [
   },
   {
     "path": "/pc-room?type=BUY&category=ADULT",
-    "title": "성인 PC방 삽니다 · PC방 매물 정보",
-    "description": "성인 PC방 삽니다 게시글을 모아 확인하세요. 피씨이음에서 지역, 희망 가격, 좌석 수와 거래 조건을 살펴보고 매장 거래 정보를 나눌 수 있습니다."
+    "title": "성인pc 구합니다·인수 준비",
+    "description": "성인pc를 찾는 분을 위한 인수 준비 정보를 안내합니다. 희망 지역과 예산, 시설과 거래 조건을 정리하고 피씨이음의 성인pc 구매 희망 목록을 살펴보세요."
   },
   {
     "path": "/pc-room?type=BUY&category=NORMAL",
@@ -242,7 +247,7 @@ export const PAGE_METADATA: readonly PublicPage[] = [
 
 // Content revision, not build/request time. Update only when these pages change.
 export const PUBLIC_PAGES: readonly PublicPage[] = PAGE_METADATA
-  .filter(page => !page.path.includes('?'))
-  .map(page => ({ ...page, lastModified: '2026-11-04' }));
+  .filter(page => !page.path.includes('?') || Object.values(ADULT_PC_LANDING_PATHS).some(path => page.path === path))
+  .map(page => ({ ...page, lastModified: page.path === '/' || Object.values(ADULT_PC_LANDING_PATHS).some(path => page.path === path) ? '2026-11-10' : '2026-11-04' }));
 
-export const FILTER_PAGES = PAGE_METADATA.filter(page => page.path.includes('?'));
+export const FILTER_PAGES = PAGE_METADATA.filter(page => page.path.includes('?') && !PUBLIC_PAGES.some(publicPage => publicPage.path === page.path));

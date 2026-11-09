@@ -1,5 +1,5 @@
 import { indexable, origin, postUrl } from "@/lib/config";
-import { PUBLIC_PAGES } from "@/lib/seo-routes";
+import { ADULT_PC_LANDING_PATHS, PUBLIC_PAGES } from "@/lib/seo-routes";
 import { database } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ const headers = {
 };
 type SitemapPost = { id: string; kind: string; category: string; updated_at: string };
 type SitemapEntry = { loc: string; lastmod?: string };
-type ContentRevision = { kind: string; category: string; modified: string | null };
+type ContentRevision = { kind: string; category: string; type: string; modified: string | null };
 
 function escapeXml(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
@@ -48,9 +48,11 @@ export async function GET(request: Request): Promise<Response> {
   const rows = await db.prepare("SELECT id, kind, category, updated_at FROM posts WHERE status = 'ACTIVE' ORDER BY updated_at DESC, id ASC LIMIT ? OFFSET ?")
     .bind(POSTS_PER_SITEMAP, (page - 1) * POSTS_PER_SITEMAP).all<SitemapPost>();
   // Hidden/sold updates also change the visible lists. Views do not change updated_at.
-  const revisions = page === 1 ? await db.prepare("SELECT kind, category, MAX(updated_at) AS modified FROM posts GROUP BY kind, category").all<ContentRevision>() : { results: [] };
+  const revisions = page === 1 ? await db.prepare("SELECT kind, category, type, MAX(updated_at) AS modified FROM posts GROUP BY kind, category, type").all<ContentRevision>() : { results: [] };
   const entries: SitemapEntry[] = page === 1 ? PUBLIC_PAGES.map(({ path, lastModified: contentRevision }) => {
+    const adultType = path === ADULT_PC_LANDING_PATHS.SELL ? 'SELL' : path === ADULT_PC_LANDING_PATHS.BUY ? 'BUY' : undefined;
     const relevant = revisions.results.filter(row => path === '/' ? row.kind === 'listing' || row.kind === 'board' && row.category === 'FREE'
+      : adultType ? row.kind === 'listing' && row.category === 'ADULT' && row.type === adultType
       : path === '/pc-room' ? row.kind === 'listing' : path === '/market' ? row.kind === 'market'
       : path === '/job' ? row.kind === 'job' : path.startsWith('/board/') ? row.kind === 'board' && row.category === path.split('/')[2] : false);
     const dates = [contentRevision, ...relevant.map(row => row.modified)].filter((value): value is string => !!value)

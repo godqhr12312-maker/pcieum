@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 import { headers } from 'next/headers';
 export const BRAND = '피씨이음';
-export const HOME_TITLE = '피씨이음 - PC방 매매 | 성인PC방 매물 · 구인구직 · 무료슬롯';
-export const DESCRIPTION = '피씨이음 - PC방 매매 플랫폼. 성인PC방 매물, 일반PC방 매물, PC방 구인구직, 중고장터와 무료슬롯을 한 곳에서 만나보세요.';
+export const HOME_TITLE = '성인pc 정보·매물 찾기 | 피씨이음';
+export const DESCRIPTION = '성인pc 정보를 찾는 분을 위한 피씨이음. 성인PC방 매물과 구매 희망 정보를 살펴보고, 지역·보증금·월세·권리금·시설 조건을 비교하는 방법과 중고장터·구인구직 정보를 확인하세요.';
 export const SEO_KEYWORDS = [
   'PC방매매', 'PC방팝니다', 'PC방삽니다', '성인피시', '성인피씨', '성인pc',
   '성인피시방', '성인피시매물', '성인피시방매물', '성인pc매물', '성인pc매입',

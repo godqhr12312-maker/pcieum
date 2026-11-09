@@ -53,6 +53,8 @@ export async function createPostMetadata(post: Post) {
 
 /** Stable canonical queries prevent sort/search and tracking URLs from multiplying in search. */
 export function catalogSeoPath(path: string, query: Record<string, string>): string {
+  const adultType = adultPcListingType(path, query);
+  if (adultType) return `/pc-room?type=${adultType}&category=ADULT`;
   const params = new URLSearchParams();
   const section = path.split('/')[1];
   const validTypes = section === 'job' ? ['HIRE', 'RESUME'] : ['SELL', 'BUY'];
@@ -74,7 +76,27 @@ export function validCatalogQuery(section: string, query: Record<string, string>
   return !(section === 'job' && query.type && query.category && query.type !== query.category);
 }
 
-/** Faceted browse results are useful to visitors, but are not search landing pages. */
-export function isFilteredCatalog(query: Record<string, string>): boolean {
+type CatalogSearchQuery = Record<string, string | string[] | undefined>;
+
+function adultPcListingType(section: string, query: CatalogSearchQuery): 'SELL' | 'BUY' | undefined {
+  if (section !== 'pc-room' && section !== '/pc-room') return;
+  if (query.category !== 'ADULT') return;
+  if (query.type === 'SELL' || query.type === 'BUY') return query.type;
+}
+
+/** Two established search landing pages; extra filters remain browse-only URLs. */
+export function adultPcLandingIntent(section: string, query: CatalogSearchQuery): 'SELL' | 'BUY' | undefined {
+  const type = adultPcListingType(section, query);
+  if (!type) return;
+  const entries = Object.entries(query).filter(([, value]) => value !== undefined);
+  if (entries.some(([key, value]) => Array.isArray(value) || !['type', 'category', 'sort'].includes(key))) return;
+  if (query.sort !== undefined && query.sort !== 'latest') return;
+  return type;
+}
+
+/** Keep ordinary facets excluded, with only the two editorial landing exceptions. */
+export function isFilteredCatalog(section: string, query: CatalogSearchQuery): boolean {
+  if (adultPcLandingIntent(section, query)) return false;
+  if (Object.entries(query).some(([key, value]) => value !== undefined && (Array.isArray(value) || !['type', 'category', 'q', 'region', 'sort', 'page'].includes(key)))) return true;
   return !!query.type || !!query.category || !!query.q || !!query.region || !!query.sort && query.sort !== 'latest';
 }

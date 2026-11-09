@@ -8,6 +8,7 @@ const PRIVATE_PAGES = new Set(["/join", "/mypage", "/write", "/admin"]);
 const FACTORIES = new Set(["createPageMetadata", "createPostMetadata"]);
 const METADATA_EXPORTS = new Set(["generateMetadata", "metadata"]);
 const REGISTRY_ORIGIN = "https://seo-check.invalid";
+const ADULT_LANDINGS = ["/pc-room?type=SELL&category=ADULT", "/pc-room?type=BUY&category=ADULT"];
 
 function visit(node, callback) {
   callback(node);
@@ -141,6 +142,30 @@ export function validateRegistry(pages) {
   return errors;
 }
 
+function validateCatalogPolicies(registry) {
+  const errors = [];
+  const normalizePath = path => {
+    const url = new URL(path, REGISTRY_ORIGIN);
+    url.searchParams.sort();
+    return url.pathname + url.search;
+  };
+  const publicPaths = new Set((registry.PUBLIC_PAGES || []).map(page => normalizePath(page.path)));
+  const filterPaths = new Set((registry.FILTER_PAGES || []).map(page => normalizePath(page.path)));
+  const adultPaths = new Set(ADULT_LANDINGS.map(normalizePath));
+  for (const path of adultPaths) {
+    if (!publicPaths.has(path) || filterPaths.has(path)) errors.push(`lib/seo-routes.ts: adult search landing ${path} must be public and absent from FILTER_PAGES.`);
+  }
+  for (const path of publicPaths) {
+    if (path.includes("?") && !adultPaths.has(path)) errors.push(`lib/seo-routes.ts: unapproved browse filter ${path} must not be public.`);
+    if (filterPaths.has(path)) errors.push(`lib/seo-routes.ts: ${path} must not appear in both PUBLIC_PAGES and FILTER_PAGES.`);
+  }
+  for (const page of registry.PAGE_METADATA || []) {
+    const path = normalizePath(page.path);
+    if (!publicPaths.has(path) && !filterPaths.has(path)) errors.push(`lib/seo-routes.ts: ${path} needs an explicit public or noindex filter policy.`);
+  }
+  return errors;
+}
+
 async function pageFiles(directory) {
   const files = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -188,6 +213,7 @@ export async function checkProject(root = PROJECT_ROOT) {
   for (const diagnostic of compiled.diagnostics || []) if (diagnostic.category === ts.DiagnosticCategory.Error) errors.push(ts.flattenDiagnosticMessageText(diagnostic.messageText, " "));
   const registry = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputText).toString("base64")}`);
   errors.push(...validateRegistry(registry.PUBLIC_PAGES));
+  errors.push(...validateCatalogPolicies(registry));
   const publicPaths = new Set((Array.isArray(registry.PUBLIC_PAGES) ? registry.PUBLIC_PAGES : []).map(page => page?.path));
   const files = await pageFiles(join(root, "app"));
   if (!files.length) errors.push("app/: no page source files found.");

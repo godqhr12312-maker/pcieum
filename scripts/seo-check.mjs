@@ -6,7 +6,8 @@ import { spawnSync } from "node:child_process";
 const BOARDS = ["FREE", "TIPS", "NOTICE", "NEWS", "GAME", "CUSTOMER"];
 const CATEGORIES = { "pc-room": ["ADULT", "NORMAL", "OTHER"], market: ["PC", "MONITOR", "CHAIR", "OTHER"], job: ["HIRE", "RESUME"] };
 const TYPES = { "pc-room": ["SELL", "BUY"], market: ["SELL", "BUY"], job: ["HIRE", "RESUME"] };
-const PUBLIC = ["/", "/pc-room", "/market", "/job", ...BOARDS.map((name) => `/board/${name}`), "/slot", "/terms", "/privacy"];
+const ADULT_LANDINGS = ["/pc-room?type=SELL&category=ADULT", "/pc-room?type=BUY&category=ADULT"];
+const PUBLIC = ["/", "/pc-room", "/market", "/job", ...BOARDS.map((name) => `/board/${name}`), "/slot", "/terms", "/privacy", ...ADULT_LANDINGS];
 const PRIVATE = ["/join", "/mypage", "/write", "/admin"];
 const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
@@ -71,6 +72,9 @@ function comparable(url) {
 function canonicalPath(url) {
   const parts = url.pathname.split("/").filter(Boolean);
   const section = parts[0];
+  if (url.pathname === "/pc-room" && ["SELL", "BUY"].includes(url.searchParams.get("type")) && url.searchParams.get("category") === "ADULT") {
+    return `/pc-room?type=${url.searchParams.get("type")}&category=ADULT`;
+  }
   const isList = parts.length === 1 && Object.hasOwn(CATEGORIES, section) || parts.length === 2 && section === "board" && BOARDS.includes(parts[1]);
   const query = new URLSearchParams();
   if (isList) {
@@ -88,6 +92,11 @@ function routeKind(url) {
   if (/^\/(?:api|signin-with-chatgpt|signout-with-chatgpt|callback)(?:\/|$)/.test(url.pathname)) return "reserved";
   if (PRIVATE.includes(url.pathname)) return "private";
   if (PUBLIC.includes(url.pathname)) {
+    const keys = [...url.searchParams.keys()];
+    const adultLanding = url.pathname === "/pc-room" && ["SELL", "BUY"].includes(url.searchParams.get("type")) && url.searchParams.get("category") === "ADULT";
+    if (adultLanding) return new Set(keys).size === keys.length && keys.every(key => ["type", "category", "sort"].includes(key))
+      && (!url.searchParams.has("sort") || url.searchParams.get("sort") === "latest") ? "public" : "filtered";
+    if (Object.hasOwn(CATEGORIES, parts[0]) && (new Set(keys).size !== keys.length || keys.some(key => !["type", "category", "page", "sort", "q", "region"].includes(key)))) return "filtered";
     if ([...url.searchParams.keys()].some((key) => !["type", "category", "page", "sort", "q", "region"].includes(key))) return "unknown";
     if (url.searchParams.get("q") || url.searchParams.get("region") || url.searchParams.has("sort") && !["", "latest"].includes(url.searchParams.get("sort"))) return "filtered";
     if (url.searchParams.get("type") && !TYPES[parts[0]]?.includes(url.searchParams.get("type"))) return "unknown";
@@ -111,7 +120,7 @@ function schemaNodes(value, result = []) {
 export async function runSeoCheck(options = {}) {
   const config = { ...parseOptions([]), ...options };
   const base = new URL(config.base);
-  const failures = [], warnings = [], pages = [], sitemapUrls = new Set(), queued = new Set(), visitedSitemaps = new Set();
+  const failures = [], warnings = [], pages = [], sitemapUrls = new Set(), queued = new Set(), visitedSitemaps = new Set(), adultGuides = new Map();
   const queue = [];
   let assertions = 0, siteOrigin = config.siteUrl ? new URL(config.siteUrl).origin : null, requests = 0, fixtureCount = 0;
   const check = (condition, label, path) => { assertions++; if (!condition) failures.push(`${path}: ${label}`); return !!condition; };
@@ -163,8 +172,9 @@ export async function runSeoCheck(options = {}) {
   }
   async function validatePage(path, kind = routeKind(new URL(path, base)), { fixtureTitle, fixtureBody } = {}) {
     const { response, body, url } = await request(path);
-    // Removed member screens may return 404; still validate their noindex policy.
-    const expectedStatus = kind === "missing" || kind === "private" && response.status === 404 ? 404 : 200;
+    // Removed member screens and out-of-range browse pages can correctly return 404.
+    const allowedMissing = kind === "private" || kind === "filtered" && Number(url.searchParams.get("page")) > 1;
+    const expectedStatus = kind === "missing" || allowedMissing && response.status === 404 ? 404 : 200;
     if (!check(response.status === expectedStatus, `expected HTTP ${expectedStatus}, received ${response.status}`, path)) return null;
     check(/text\/html/.test(response.headers.get("content-type") || ""), "HTML content type", path);
     const html = inspectHtml(body);
@@ -180,6 +190,24 @@ export async function runSeoCheck(options = {}) {
     check(html.headNamed("description").length === 1 && html.headNamed("description")[0] === html.named("description")[0], "description is emitted inside the initial HTML head", path);
     check(html.html.lang?.toLowerCase() === "ko", 'html lang="ko"', path);
     check(html.h1.length === 1 && !!html.h1[0], "exactly one nonempty server-rendered h1", path);
+    const adultLanding = ADULT_LANDINGS.some(landing => comparable(new URL(landing, base)) === comparable(url));
+    if (url.pathname === "/" || adultLanding) {
+      check(/성인pc/i.test(html.titles[0] || ""), "target query appears naturally in the title", path);
+      check(/성인pc/i.test(html.h1[0] || ""), "target query appears in the server-rendered h1", path);
+    }
+    if (url.pathname === "/") for (const landing of ADULT_LANDINGS) {
+      check(html.links.some(link => { try { return comparable(new URL(link.href, siteOrigin)) === comparable(new URL(landing, siteOrigin)); } catch { return false; } }), "homepage has a crawlable link to each adult landing", landing);
+    }
+    if (adultLanding) {
+      const intent = url.searchParams.get("type").toLowerCase();
+      const guide = html.markup.match(new RegExp(`<section\\b(?=[^>]*\\baria-labelledby=["']adult-pc-${intent}-guide["'])[^>]*>([\\s\\S]*?)<\\/section>`, "i"))?.[1] || "";
+      const content = text(guide);
+      check(content.length >= 200 && /성인pc/i.test(content), "intent-specific guide is server-rendered with useful body content", path);
+      check(new RegExp(`id=["']adult-pc-${intent}-guide["']`, "i").test(guide), "guide heading matches the selling or buying intent", path);
+      const related = ADULT_LANDINGS.find(landing => !landing.includes(`type=${url.searchParams.get("type")}`));
+      check(html.links.some(link => { try { return comparable(new URL(link.href, siteOrigin)) === comparable(new URL(related, siteOrigin)); } catch { return false; } }), "adult landing links to the related selling or buying guide", path);
+      adultGuides.set(intent, content);
+    }
     check(html.named("viewport").some((value) => /width=device-width/.test(value)), "mobile viewport", path);
     check(html.canonical.length === 1, "exactly one canonical", path);
     check(html.headCanonical.length === 1 && html.headCanonical[0] === html.canonical[0], "canonical is emitted inside the initial HTML head", path);
@@ -339,11 +367,19 @@ export async function runSeoCheck(options = {}) {
     if (!config.preview) for (const path of PUBLIC) check(sitemapUrls.has(comparable(new URL(path, siteOrigin))), "public route present in sitemap", path);
     else check(sitemapUrls.size === 0, "preview sitemap contains no indexable pages", "/sitemap.xml");
     for (const path of PUBLIC) enqueue(path, "public", "required");
-    // Every type/category filter is intentionally noindex and absent from the sitemap.
+    // Only the two approved adult intent pages are search landing pages.
     const { FILTER_PAGES } = await import("data:text/javascript;base64," + Buffer.from((await import("typescript")).default.transpileModule(await readFile(new URL("../lib/seo-routes.ts", import.meta.url), "utf8"), {compilerOptions:{module:99,target:9}}).outputText).toString("base64"));
     for (const {path} of FILTER_PAGES) {
       check(!sitemapUrls.has(comparable(new URL(path, siteOrigin))), "browse filter absent from sitemap", path);
       enqueue(path, "filtered", "filter policy");
+    }
+    for (const landing of ADULT_LANDINGS) {
+      for (const suffix of ["&q=SEO", "&q=", "&region=서울", "&region=", "&sort=popular", "&sort=", "&unknown=1", "&page=1", "&page=2", "&type=BUY", "&category=ADULT"]) {
+        const path = landing + suffix;
+        check(!sitemapUrls.has(comparable(new URL(path, siteOrigin))), "adult landing variation absent from sitemap", path);
+        enqueue(path, "filtered", "adult landing boundary");
+      }
+      enqueue(landing + "&sort=latest", "public", "default sort canonical regression");
     }
     const variants = ["/pc-room?type=SELL", "/pc-room?type=BUY", "/pc-room?type=SELL&category=NORMAL", "/pc-room?type=BUY&category=ADULT", "/market?category=PC", "/market?category=MONITOR", "/job?type=HIRE", "/job?type=RESUME", "/pc-room?page=1", "/pc-room?sort=latest"];
     for (const path of config.smoke ? variants.slice(-2) : variants) enqueue(path, routeKind(new URL(path, base)), "required query");
@@ -370,6 +406,7 @@ export async function runSeoCheck(options = {}) {
         }
       } catch (error) { check(false, error.message, item.path); }
     }
+    check(adultGuides.size === 2 && adultGuides.get("sell") !== adultGuides.get("buy"), "selling and buying pages have distinct server-rendered guides", "adult landings");
     if (config.fixture) await fixtures();
   } catch (error) { check(false, error.message, "run"); }
   return { passed: failures.length === 0, mode: config.preview ? "preview" : "public", base: base.origin, siteOrigin, requests, assertions, pages: pages.length, sitemapUrls: sitemapUrls.size, fixtures: fixtureCount, failures, warnings: [...new Set(warnings)], results: pages };

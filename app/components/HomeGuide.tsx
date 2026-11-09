@@ -3,15 +3,17 @@ import { Icon } from "./UI";
 const guides = [
   {
     icon: "shop",
-    title: "PC방 매매 정보",
-    description: "매장을 찾을 때는 지역과 업종을 먼저 정한 뒤, 판매 글과 구매 희망 글을 나누어 살펴보세요. 성인 PC방, 일반 PC방, 기타 업종별로 목록을 좁힐 수 있습니다.",
+    title: "성인pc 정보 비교",
+    description: "성인pc를 살펴볼 때는 지역과 매장 규모부터 정리해 보세요. 판매 글에서 제시하는 조건과 구매 희망 글에 적힌 예산을 구분하면 필요한 정보를 찾기 쉽습니다.",
     items: [
       ["위치와 규모", "시·도와 세부 지역, 좌석 수를 같은 기준으로 비교합니다."],
       ["가격 항목", "매매 가격, 보증금, 권리금을 구분하고 본문의 포함 항목을 확인합니다."],
       ["매장 설명", "PC 사양과 시설 상태, 양도 범위가 어떻게 적혀 있는지 읽어봅니다."],
     ],
-    href: "/pc-room",
-    link: "PC방 매물 살펴보기",
+    href: "/pc-room?type=SELL&category=ADULT",
+    link: "성인pc 판매 정보와 확인 항목",
+    secondaryHref: "/pc-room?type=BUY&category=ADULT",
+    secondaryLink: "성인pc 구매 조건과 준비 순서",
   },
   {
     icon: "box",
@@ -65,8 +67,8 @@ export function HomeGuide() {
     <section aria-labelledby="home-guide-title">
       <div className="guide-heading">
         <span className="guide-kicker">피씨이음 이용 가이드</span>
-        <h2 id="home-guide-title">필요한 정보를, 같은 기준으로 살펴보세요</h2>
-        <p>피씨이음은 PC방 매매, 중고 물품, 구인구직과 운영 이야기를 한곳에서 찾아보는 공간입니다. 관심 있는 게시판을 선택하고 아래 항목을 기준으로 상세 내용을 비교해 보세요.</p>
+        <h2 id="home-guide-title">성인pc 정보, 조건부터 차근차근</h2>
+        <p>피씨이음에서는 성인pc 관련 판매·구매 정보와 PC방 중고 물품, 구인구직을 구분해 살펴볼 수 있습니다. 먼저 공개 목록의 게시글 수와 선택한 지역을 확인하고, 아래 비교 항목으로 필요한 내용을 정리해 보세요.</p>
       </div>
       <div className="guide-grid">
         {guides.map(guide => <article className="guide-card" key={guide.href}>
@@ -74,7 +76,10 @@ export function HomeGuide() {
           <h3>{guide.title}</h3>
           <p>{guide.description}</p>
           <dl className="guide-checklist">{guide.items.map(([label, description]) => <div key={label}><dt>{label}</dt><dd>{description}</dd></div>)}</dl>
-          <a className="guide-link" href={guide.href}>{guide.link}<Icon name="arrow" size={13} /></a>
+          <div className="guide-card-links">
+            <a className="guide-link" href={guide.href}>{guide.link}<Icon name="arrow" size={13} /></a>
+            {guide.secondaryHref && <a className="guide-link" href={guide.secondaryHref}>{guide.secondaryLink}<Icon name="arrow" size={13} /></a>}
+          </div>
         </article>)}
       </div>
     </section>

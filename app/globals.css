@@ -65,3 +65,22 @@
 }
 
 .hero{grid-template-columns:minmax(0,1fr)}.hero-content{min-width:0;max-width:100%}
+
+.guide-card-links{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:auto}
+.guide-card-links .guide-link{margin-top:0}
+.adult-pc-guide{margin-top:48px;padding-top:35px;border-top:1px solid var(--line)}
+.adult-guide-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:22px}
+.adult-guide-panel{display:flex;flex-direction:column;min-width:0;padding:27px 28px;background:white;border:1px solid var(--line);border-radius:16px}
+.adult-guide-panel>h3,.adult-guide-faq>h3{margin:0 0 20px;color:#354159;font-size:17px;line-height:1.7}
+.adult-guide-panel .guide-checklist{padding-top:0;margin-bottom:0;border-top:0}
+.adult-guide-steps{display:flex;flex-direction:column;gap:22px;margin:0 0 26px;padding:0;list-style:none}
+.adult-guide-steps li{display:flex;align-items:flex-start;gap:13px}
+.adult-guide-steps p{margin:0;color:#637087;font-size:12px;line-height:1.95;word-break:keep-all;overflow-wrap:anywhere}
+.adult-guide-faq{margin-top:30px}
+.adult-guide-faq h4{margin:0;color:#354159;font-size:14px;line-height:1.9;word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:980px){.adult-guide-grid{gap:16px}.adult-guide-panel{padding:23px 22px}}
+@media(max-width:640px){
+ .adult-pc-guide{margin-top:32px;padding-top:27px}.adult-guide-grid{grid-template-columns:1fr;gap:15px}
+ .adult-guide-panel{padding:23px 21px}.adult-guide-panel>h3,.adult-guide-faq>h3{font-size:15px;margin-bottom:18px}
+ .adult-guide-faq{margin-top:27px}.adult-guide-faq h4{font-size:13px}
+}
