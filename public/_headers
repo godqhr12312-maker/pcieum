@@ -12,6 +12,10 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Font filenames include a content hash; license/source notes do not match.
+/fonts/noto-sans-kr-v40-*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Explicit content-hashed public asset; stable filenames must revalidate.
 /hero.93b030a133d9.jpg
   Cache-Control: public, max-age=31536000, immutable

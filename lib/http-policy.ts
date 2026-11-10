@@ -47,8 +47,8 @@ export function contentSecurityPolicy(nonce: string): string {
   return [
     "default-src 'self'", `script-src 'self' 'nonce-${nonce}'`, "script-src-attr 'none'",
     // React styles and the mini-game use inline style attributes; scripts do not.
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "img-src 'self' data: blob: https:",
-    "font-src 'self' data: https://fonts.gstatic.com", "connect-src 'self'", "object-src 'none'",
+    "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob: https:",
+    "font-src 'self' data:", "connect-src 'self'", "object-src 'none'",
     "base-uri 'self'", "form-action 'self'",
     "frame-src 'self' https://challenges.cloudflare.com",
     // Sites can be previewed inside ChatGPT; do not allow arbitrary Sites tenants.
