@@ -7,6 +7,9 @@
 ## 주요 페이지
 
 - [홈](https://pcieum.com/): 성인pc 정보 탐색과 서비스 안내
+- [성인pc 정보글](https://pcieum.com/guides): 공식 자료를 바탕으로 작성한 구매·운영 확인 가이드와 출처
+- [영업 형태와 게임물 등급 확인](https://pcieum.com/guides/adult-pc-business-and-game-check): 허가·등록 구분과 게임물 등급·내용 대조
+- [중고 PC 인수 점검](https://pcieum.com/guides/adult-pc-used-computer-check): 사양, Windows 지원·정품 인증 및 저장장치 확인
 - [성인pc 매물과 조건 비교](https://pcieum.com/pc-room?type=SELL&category=ADULT): 판매 목록과 지역·가격·시설·인계 조건 확인 안내
 - [성인pc 구매 희망과 인수 준비](https://pcieum.com/pc-room?type=BUY&category=ADULT): 구매 희망 목록과 예산·현장 확인·비교 기록 안내
 - [PC방 매매](https://pcieum.com/pc-room): 판매·구매, 업종, 지역별 매물 탐색

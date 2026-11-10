@@ -44,6 +44,24 @@ export const CATALOG_QUERY_OPTIONS = {
 /** Metadata also covers browse filters; PUBLIC_PAGES selects search landing pages. */
 export const PAGE_METADATA: readonly PublicPage[] = [
   {
+    "path": "/guides",
+    "title": "성인pc 정보글 · 구매·운영 확인 가이드",
+    "description": "성인pc를 알아볼 때 필요한 영업 형태와 게임물 등급, 중고 PC 사양·Windows·저장장치 확인 방법을 공식 출처와 함께 살펴보세요.",
+    "lastModified": "2026-11-10"
+  },
+  {
+    "path": "/guides/adult-pc-business-and-game-check",
+    "title": "성인pc 계약 전 확인할 영업 형태와 게임물 등급",
+    "description": "성인pc 매장을 알아볼 때 확인할 허가·등록의 차이, 게임물 등급과 실제 내용의 대조 방법, 계약 전 준비할 자료를 현행 법령과 공식 안내로 정리했습니다.",
+    "lastModified": "2026-11-10"
+  },
+  {
+    "path": "/guides/adult-pc-used-computer-check",
+    "title": "성인pc 중고 PC 인수 점검: 사양·Windows·저장장치",
+    "description": "성인pc 매장이나 중고 PC 인수 전에 CPU·RAM, SSD 상태, Windows 정품 인증과 인계 조건을 확인하는 순서를 Microsoft 공식 문서에 근거해 안내합니다.",
+    "lastModified": "2026-11-10"
+  },
+  {
     "path": "/",
     "title": "성인pc 정보·매물 찾기 | 피씨이음",
     "description": "성인pc 정보를 찾는 분을 위한 피씨이음. 성인PC방 매물과 구매 희망 정보를 살펴보고, 지역·보증금·월세·권리금·시설 조건을 비교하는 방법과 중고장터·구인구직 정보를 확인하세요."
@@ -248,6 +266,6 @@ export const PAGE_METADATA: readonly PublicPage[] = [
 // Content revision, not build/request time. Update only when these pages change.
 export const PUBLIC_PAGES: readonly PublicPage[] = PAGE_METADATA
   .filter(page => !page.path.includes('?') || Object.values(ADULT_PC_LANDING_PATHS).some(path => page.path === path))
-  .map(page => ({ ...page, lastModified: page.path === '/' || Object.values(ADULT_PC_LANDING_PATHS).some(path => page.path === path) ? '2026-11-10' : '2026-11-04' }));
+  .map(page => ({ ...page, lastModified: page.lastModified || (page.path === '/' || Object.values(ADULT_PC_LANDING_PATHS).some(path => page.path === path) ? '2026-11-10' : '2026-11-04') }));
 
 export const FILTER_PAGES = PAGE_METADATA.filter(page => page.path.includes('?') && !PUBLIC_PAGES.some(publicPage => publicPage.path === page.path));

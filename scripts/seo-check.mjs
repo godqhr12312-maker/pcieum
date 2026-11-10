@@ -7,7 +7,8 @@ const BOARDS = ["FREE", "TIPS", "NOTICE", "NEWS", "GAME", "CUSTOMER"];
 const CATEGORIES = { "pc-room": ["ADULT", "NORMAL", "OTHER"], market: ["PC", "MONITOR", "CHAIR", "OTHER"], job: ["HIRE", "RESUME"] };
 const TYPES = { "pc-room": ["SELL", "BUY"], market: ["SELL", "BUY"], job: ["HIRE", "RESUME"] };
 const ADULT_LANDINGS = ["/pc-room?type=SELL&category=ADULT", "/pc-room?type=BUY&category=ADULT"];
-const PUBLIC = ["/", "/pc-room", "/market", "/job", ...BOARDS.map((name) => `/board/${name}`), "/slot", "/terms", "/privacy", ...ADULT_LANDINGS];
+const GUIDE_ARTICLES = ["/guides/adult-pc-business-and-game-check", "/guides/adult-pc-used-computer-check"];
+const PUBLIC = ["/", "/pc-room", "/market", "/job", ...BOARDS.map((name) => `/board/${name}`), "/slot", "/terms", "/privacy", ...ADULT_LANDINGS, "/guides", ...GUIDE_ARTICLES];
 const PRIVATE = ["/join", "/mypage", "/write", "/admin"];
 const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
@@ -302,6 +303,29 @@ export async function runSeoCheck(options = {}) {
     const schemaTypes = schemas.flatMap((schema) => Array.isArray(schema["@type"]) ? schema["@type"] : [schema["@type"]]);
     check(schemaTypes.filter((type) => type === "Organization").length === 1, "exactly one Organization JSON-LD", path);
     if (url.pathname === "/") check(schemaTypes.filter((type) => type === "WebSite").length === 1, "homepage has exactly one WebSite JSON-LD", path);
+    if (url.pathname === "/guides") for (const articlePath of GUIDE_ARTICLES) {
+      check(html.links.some(link => { try { return new URL(link.href, siteOrigin).pathname === articlePath; } catch { return false; } }), "guide index links to each published article", articlePath);
+    }
+    if (GUIDE_ARTICLES.includes(url.pathname)) {
+      const articles = schemas.filter(schema => schema["@type"] === "Article");
+      if (check(articles.length === 1, "exactly one Article JSON-LD", path)) {
+        const article = articles[0];
+        check(article.headline === html.h1[0], "Article headline matches visible article heading", path);
+        check(article.url === canonical?.href && article.mainEntityOfPage?.["@id"] === `${canonical?.href}#webpage`, "Article is linked to its canonical WebPage", path);
+        check(article.author?.["@type"] === "Organization" && article.author?.name === "피씨이음" && article.author?.["@id"] === `${siteOrigin}/#organization`, "article author is the identified site organization", path);
+        check(article.publisher?.["@id"] === `${siteOrigin}/#organization`, "article publisher links to the site organization", path);
+        check([article.datePublished, article.dateModified].every(date => typeof date === "string" && Number.isFinite(Date.parse(date))), "article dates are present and valid", path);
+        check(typeof article.articleBody === "string" && article.articleBody.length > 500, "Article contains substantive editorial text", path);
+        check(html.named("og:type").includes("article"), "editorial Open Graph type is article", path);
+        const citations = article.citation;
+        if (check(Array.isArray(citations) && citations.length > 0, "article declares its actual source citations", path)) for (const citation of citations) {
+          check(typeof citation.url === "string" && /^https:\/\//.test(citation.url) && html.links.some(link => link.href === citation.url), "each structured citation has a visible source link", path);
+        }
+      }
+      for (const landing of ADULT_LANDINGS) check(html.links.some(link => { try { return comparable(new URL(link.href, siteOrigin)) === comparable(new URL(landing, siteOrigin)); } catch { return false; } }), "article links to both adult intent pages", path);
+      const toc = html.markup.match(/<nav\b(?=[^>]*\baria-label="이 글의 목차")[^>]*>([\s\S]*?)<\/nav>/i)?.[1] || "";
+      check(!!toc && [...toc.matchAll(/href="#([^"]+)"/g)].every(match => html.markup.includes(`id="${match[1]}"`)), "article table of contents points to rendered sections", path);
+    }
     for (const image of html.images) {
       check(Object.hasOwn(image, "alt"), `image alt attribute: ${image.src || "missing src"}`, path);
       check(!!image.src && !/^javascript:/i.test(image.src), "image has a safe nonempty src", path);
@@ -439,7 +463,7 @@ export async function runSeoCheck(options = {}) {
     enqueue('/pc-room?q=first&q=second', 'filtered', 'repeated query regression');
     for (const path of PRIVATE) enqueue(path, "private", "intentional noindex");
     for (const path of ["/pc-room?q=SEO", "/pc-room?region=서울", "/pc-room?sort=popular"]) enqueue(path, routeKind(new URL(path, base)), "intentional noindex");
-    for (const path of ["/pc-room/sample-seoul", "/pc-room/sample-busan", "/missing-route-for-seo-check"]) enqueue(path, "missing", "removed or missing page");
+    for (const path of ["/pc-room/sample-seoul", "/pc-room/sample-busan", "/missing-route-for-seo-check", "/guides/missing-guide-for-seo-check"]) enqueue(path, "missing", "removed or missing page");
     let cursor = 0;
     while (cursor < queue.length) {
       if (!check(cursor < config.maxPages, `crawl exceeds --max-pages=${config.maxPages}; ${queue.length - cursor} queued URLs remain (not a pass)`, "crawl")) break;

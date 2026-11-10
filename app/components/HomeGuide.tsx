@@ -1,4 +1,5 @@
 import { Icon } from "./UI";
+import { GuideLinks } from "./GuideLinks";
 
 const guides = [
   {
@@ -64,6 +65,7 @@ const questions = [
 
 export function HomeGuide() {
   return <div className="home-guide">
+    <GuideLinks />
     <section aria-labelledby="home-guide-title">
       <div className="guide-heading">
         <span className="guide-kicker">피씨이음 이용 가이드</span>

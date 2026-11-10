@@ -1,3 +1,5 @@
+import { GuideLinks } from './GuideLinks';
+
 type GuideIntent = "SELL" | "BUY";
 
 const guides = {
@@ -76,5 +78,6 @@ export function AdultPcGuide({ intent }: { intent: GuideIntent }) {
       <h3 id={`${headingId}-faq`}>자주 묻는 질문</h3>
       <div className="guide-faq-list">{guide.questions.map(([question, answer]) => <article key={question}><h4>{question}</h4><p>{answer}</p></article>)}</div>
     </section>
+    <GuideLinks compact />
   </section>;
 }
