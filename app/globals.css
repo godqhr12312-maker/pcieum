@@ -108,6 +108,9 @@
 .information-article-heading h1{max-width:860px}
 .information-deck{max-width:870px;margin:0 0 24px;color:#526079;font-size:18px;line-height:1.9;word-break:keep-all;overflow-wrap:anywhere}
 .information-byline{display:flex;flex-wrap:wrap;gap:9px 21px;color:#68758a;font-size:13px;line-height:1.7}
+.information-byline a,.information-card-meta a{color:#405fac;text-decoration:underline;text-underline-offset:3px}
+.information-policy-links{display:flex;flex-wrap:wrap;gap:16px 24px;padding:20px 0;color:#405fac;font-size:15px;line-height:1.8}
+.information-policy-links a{text-decoration:underline;text-underline-offset:4px}
 .information-article-layout{display:grid;grid-template-columns:225px minmax(0,1fr);gap:38px;align-items:start}
 .information-toc{position:sticky;top:105px;padding:20px;background:#f4f7fc;border-radius:12px;min-width:0}
 .information-toc h2{margin:0 0 16px;color:#344564;font-size:14px;line-height:1.7}

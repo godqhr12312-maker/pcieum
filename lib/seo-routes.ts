@@ -44,6 +44,24 @@ export const CATALOG_QUERY_OPTIONS = {
 /** Metadata also covers browse filters; PUBLIC_PAGES selects search landing pages. */
 export const PAGE_METADATA: readonly PublicPage[] = [
   {
+    path: '/about',
+    title: '피씨이음 소개 · 운영자 안내',
+    description: '피씨이음의 운영자 관리자와 서비스 목적, 공개 정보글의 작성 책임 및 제공 범위를 안내합니다. 편집 기준과 정정 문의 방법도 확인하세요.',
+    lastModified: '2026-11-10',
+  },
+  {
+    path: '/editorial-policy',
+    title: '피씨이음 편집 기준 · 출처 확인과 정정 정책',
+    description: '피씨이음 정보글의 공식 출처 선정, 확인 날짜 표기, 사실과 점검 제안의 구분, 오류 검토와 정정 이력 관리 기준을 안내합니다.',
+    lastModified: '2026-11-10',
+  },
+  {
+    path: '/contact',
+    title: '피씨이음 정정 문의 · 운영자 연락처',
+    description: '피씨이음 운영자에게 정보 오류와 출처 변경을 알려주세요. 텔레그램 문의처, 정정 요청에 필요한 항목과 개인정보 최소 제공 안내를 확인할 수 있습니다.',
+    lastModified: '2026-11-10',
+  },
+  {
     "path": "/guides",
     "title": "성인pc 정보글 · 구매·운영 확인 가이드",
     "description": "성인pc를 알아볼 때 필요한 영업 형태와 게임물 등급, 중고 PC 사양·Windows·저장장치 확인 방법을 공식 출처와 함께 살펴보세요.",
@@ -119,11 +137,13 @@ export const PAGE_METADATA: readonly PublicPage[] = [
   {
     "path": "/terms",
     "title": "피씨이음 이용 안내",
+    "lastModified": "2026-11-10",
     "description": "피씨이음의 매물 검색과 게시판 열람, 서비스 이용 및 거래 시 확인할 사항을 안내합니다. 무료 미니게임과 서비스 운영에 관한 내용도 확인하세요."
   },
   {
     "path": "/privacy",
     "title": "피씨이음 개인정보 안내",
+    "lastModified": "2026-11-10",
     "description": "피씨이음의 공개 콘텐츠와 현재 서비스에서 제공하는 정보 입력 기능, 호스팅을 통한 서비스 제공 및 개인정보 관련 안내를 확인하세요."
   },
   {

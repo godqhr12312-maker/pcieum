@@ -6,6 +6,9 @@
 
 ## 주요 페이지
 
+- [피씨이음 소개](https://pcieum.com/about): 서비스 목적과 운영자 관리자 안내
+- [편집 기준](https://pcieum.com/editorial-policy): 출처 선정, 사실 확인과 정정 원칙
+- [정정 문의](https://pcieum.com/contact): 운영자의 텔레그램 연락처와 오류 제보 방법
 - [홈](https://pcieum.com/): 성인pc 정보 탐색과 서비스 안내
 - [성인pc 정보글](https://pcieum.com/guides): 공식 자료를 바탕으로 작성한 구매·운영 확인 가이드와 출처
 - [영업 형태와 게임물 등급 확인](https://pcieum.com/guides/adult-pc-business-and-game-check): 허가·등록 구분과 게임물 등급·내용 대조

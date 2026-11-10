@@ -1,4 +1,5 @@
 import { BRAND, DESCRIPTION, jsonLd, origin } from '@/lib/config';
+import { PUBLIC_CONTACT_EMAIL, PUBLIC_CONTACT_URL } from '@/lib/site-information';
 
 export async function SiteStructuredData() {
   const base = await origin();
@@ -7,6 +8,9 @@ export async function SiteStructuredData() {
     '@graph': [
       {
         '@type': 'Organization', '@id': `${base}/#organization`, name: BRAND, url: base,
+        description: '성인pc 정보글과 PC방 매물·중고장터·구인구직 정보를 제공하는 피씨이음입니다.',
+        publishingPrinciples: `${base}/editorial-policy`, correctionsPolicy: `${base}/editorial-policy#corrections`,
+        contactPoint: { '@type': 'ContactPoint', contactType: '정정 문의 및 서비스 문의', url: PUBLIC_CONTACT_URL || `${base}/contact`, availableLanguage: 'ko', ...(PUBLIC_CONTACT_EMAIL ? { email: PUBLIC_CONTACT_EMAIL } : {}) },
         logo: { '@type': 'ImageObject', '@id': `${base}/#logo`, url: `${base}/logo.png`, width: 512, height: 512 },
       },
       {
@@ -22,7 +26,7 @@ export async function SiteStructuredData() {
 type PageProps = {
   path: string; title: string; description?: string;
   parents?: { path: string; title: string }[];
-  type?: 'WebPage' | 'CollectionPage';
+  type?: 'WebPage' | 'CollectionPage' | 'AboutPage' | 'ContactPage';
   items?: { path: string; title: string; position: number }[];
   modified?: string;
 };

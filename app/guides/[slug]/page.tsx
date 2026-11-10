@@ -34,7 +34,7 @@ export default async function GuideArticlePage({ params }: Props) {
         <span className="guide-kicker">{article.category}</span>
         <h1 id="information-article-title">{article.title}</h1>
         <p className="information-deck">{article.description}</p>
-        <div className="information-byline"><span>작성 · {BRAND}</span><span>게시 <time dateTime={article.publishedAt}>{dateText(article.publishedAt)}</time></span><span>최종 확인 <time dateTime={article.updatedAt}>{dateText(article.updatedAt)}</time></span></div>
+        <div className="information-byline"><a href="/about">작성 · {BRAND}</a><span>게시 <time dateTime={article.publishedAt}>{dateText(article.publishedAt)}</time></span><span>최종 확인 <time dateTime={article.updatedAt}>{dateText(article.updatedAt)}</time></span><a href="/editorial-policy">편집 기준</a><a href="/contact">오류·정정 문의</a></div>
       </header>
       <div className="information-article-layout">
         <nav className="information-toc" aria-label="이 글의 목차">
@@ -80,7 +80,7 @@ export default async function GuideArticlePage({ params }: Props) {
       headline: article.title, description: article.description, articleSection: article.category, articleBody,
       datePublished: article.publishedAt, dateModified: article.updatedAt, inLanguage: 'ko-KR',
       mainEntityOfPage: { '@id': `${url}#webpage` },
-      author: { '@type': 'Organization', '@id': `${base}/#organization`, name: BRAND, url: base },
+      author: { '@type': 'Organization', '@id': `${base}/#organization`, name: BRAND, url: `${base}/about` },
       publisher: { '@id': `${base}/#organization` },
       citation: article.sources.map(source => ({ '@type': 'CreativeWork', name: source.title, url: source.url, publisher: { '@type': 'Organization', name: source.organization } })),
     }) }} />
