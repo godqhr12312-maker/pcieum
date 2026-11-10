@@ -1,4 +1,4 @@
-import {notFound,redirect} from 'next/navigation';
+import {notFound,redirect,permanentRedirect} from 'next/navigation';
 import type {Metadata} from 'next';
 import {getPost,listPosts,listComments,getProfile,isAdmin,getFavoriteIds,listFavorites,recordPostView} from '@/lib/store';
 import {categories,regions,priceText,postUrl,dateText,origin,jsonLd,DESCRIPTION} from '@/lib/config';
@@ -10,7 +10,7 @@ import {PAGE_METADATA} from '@/lib/seo-routes';
 import {PageStructuredData} from '../components/StructuredData';
 import {AdultPcGuide} from '../components/AdultPcGuide';
 import {MEMBER_FEATURES_ENABLED} from '@/lib/member-features';
-import {normalizeQuery,type SearchQuery} from '@/lib/query';
+import {normalizeQuery,emptyAdultSearchRedirect,type SearchQuery} from '@/lib/query';
 import type {PostKind} from '@/lib/types';
 export const dynamic='force-dynamic';
 type Props={params:Promise<{route:string[]}>,searchParams:Promise<SearchQuery>};
@@ -22,7 +22,9 @@ function safeReturnTo(value:unknown):string|undefined {
 function routeInfo(route:string[],query:Record<string,string>){const section=route[0];const kind:PostKind=section==='pc-room'?'listing':section==='market'?'market':section==='job'?'job':'board';const category=kind==='board'?route[1]:query.category;const id=kind==='board'?route[2]:route[1];const title=kind==='listing'?(query.type==='BUY'?'PC방 삽니다':query.type==='SELL'?'PC방 팝니다':'PC방 매매'):kind==='market'?'중고장터':kind==='job'?'구인구직':categories[category||'FREE'];return {section,kind,category,id,title};}
 function urlWith(base:string,query:Record<string,string>,changes:Record<string,string>){const next={...query,...changes};const qs=new URLSearchParams(Object.entries(next).filter(([,v])=>v));return base+(qs.size?'?'+qs:'');}
 export async function generateMetadata({params,searchParams}:Props):Promise<Metadata>{
- const {route}=await params;const rawQuery=await searchParams;const q=normalizeQuery(rawQuery);const info=routeInfo(route,q);
+ const {route}=await params;const rawQuery=await searchParams;
+ const canonicalRedirect=emptyAdultSearchRedirect('/'+route.join('/'),rawQuery);if(canonicalRedirect)permanentRedirect(canonicalRedirect);
+ const q=normalizeQuery(rawQuery);const info=routeInfo(route,q);
  const path='/'+route.join('/');const isCatalog=['pc-room','market','job','board'].includes(route[0]);
  if(isCatalog&&info.id){
   const post=await getPost(info.id);
@@ -44,7 +46,9 @@ export async function generateMetadata({params,searchParams}:Props):Promise<Meta
  return createPageMetadata({...details,path,index:!!entry});
 }
 async function AuthPrompt({returnTo,title='로그인이 필요합니다.'}:{returnTo:string,title?:string}){return <div className="narrow panel form-panel"><span className="row-icon"><Icon name="shield" size={25}/></span><h1 style={{marginTop:22}}>{title}</h1><p className="muted">ChatGPT 계정으로 안전하게 로그인하고 피씨이음에서 새로운 연결을 시작하세요.</p><a href={chatGPTSignInPath(returnTo)} target="_top" className="btn btn-primary">ChatGPT로 계속하기 <Icon name="arrow" size={14}/></a><p className="muted" style={{marginTop:20}}>로그인 후 닉네임을 등록하면 글쓰기, 댓글, 관심 매물 저장 기능을 이용할 수 있습니다.</p></div>}
-export default async function Page({params,searchParams}:Props){const {route}=await params;const rawQuery=await searchParams;const q=normalizeQuery(rawQuery);const {section,kind,category,id,title}=routeInfo(route,q);const siteOrigin=await origin();
+export default async function Page({params,searchParams}:Props){const {route}=await params;const rawQuery=await searchParams;
+ const canonicalRedirect=emptyAdultSearchRedirect('/'+route.join('/'),rawQuery);if(canonicalRedirect)permanentRedirect(canonicalRedirect);
+ const q=normalizeQuery(rawQuery);const {section,kind,category,id,title}=routeInfo(route,q);const siteOrigin=await origin();
  if(['pc-room','market','job','board'].includes(section)){
   if((kind==='board'&&(!category||!boardNames.includes(category)||route.length>3))||(kind!=='board'&&route.length>2))notFound();
   if(!id&&!validCatalogQuery(section,q))notFound();

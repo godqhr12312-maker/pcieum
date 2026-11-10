@@ -53,8 +53,23 @@ export function inspectHtml(html) {
   const metas = tags("meta");
   const named = (name) => metas.filter((meta) => (meta.name || meta.property || "").toLowerCase() === name).map((meta) => meta.content || "");
   const headNamed = (name) => tags("meta", head).filter((meta) => (meta.name || meta.property || "").toLowerCase() === name).map((meta) => meta.content || "");
+  const forms = [...markup.matchAll(/<form\b([^>]*)>([\s\S]*?)<\/form\s*>/gi)].map(match => {
+    const fields = tags("input", match[2]).filter(input => input.name && !Object.hasOwn(input, "disabled")
+      && !["submit", "button", "reset", "file"].includes(input.type)
+      && (!["checkbox", "radio"].includes(input.type) || Object.hasOwn(input, "checked")))
+      .map(input => [input.name, input.value || ""]);
+    for (const selectMatch of match[2].matchAll(/<select\b([^>]*)>([\s\S]*?)<\/select\s*>/gi)) {
+      const select = attrs(`<select ${selectMatch[1]}>`);
+      if (!select.name || Object.hasOwn(select, "disabled")) continue;
+      const options = [...selectMatch[2].matchAll(/<option\b([^>]*)>([\s\S]*?)<\/option\s*>/gi)]
+        .map(option => ({ ...attrs(`<option ${option[1]}>`), text: text(option[2]) }));
+      const selected = options.find(option => Object.hasOwn(option, "selected")) || options[0];
+      if (selected) fields.push([select.name, selected.value ?? selected.text]);
+    }
+    return { ...attrs(`<form ${match[1]}>`), fields };
+  });
   return {
-    markup, metas, named, headNamed, html: tags("html")[0] || {},
+    markup, metas, named, headNamed, forms, html: tags("html")[0] || {},
     headTitles: [...head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)].map((match) => text(match[1])),
     headCanonical: tags("link", head).filter((link) => (link.rel || "").toLowerCase().split(/\s+/).includes("canonical")).map((link) => link.href || ""),
     titles: [...markup.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)].map((match) => text(match[1])),
@@ -94,6 +109,9 @@ function routeKind(url) {
   if (PUBLIC.includes(url.pathname)) {
     const keys = [...url.searchParams.keys()];
     const adultLanding = url.pathname === "/pc-room" && ["SELL", "BUY"].includes(url.searchParams.get("type")) && url.searchParams.get("category") === "ADULT";
+    if (adultLanding && new Set(keys).size === keys.length && url.searchParams.has("q") && url.searchParams.get("q") === ""
+      && keys.every(key => ["type", "category", "q", "sort"].includes(key))
+      && (!url.searchParams.has("sort") || url.searchParams.get("sort") === "latest")) return "redirect";
     if (adultLanding) return new Set(keys).size === keys.length && keys.every(key => ["type", "category", "sort"].includes(key))
       && (!url.searchParams.has("sort") || url.searchParams.get("sort") === "latest") ? "public" : "filtered";
     if (Object.hasOwn(CATEGORIES, parts[0]) && (new Set(keys).size !== keys.length || keys.some(key => !["type", "category", "page", "sort", "q", "region"].includes(key)))) return "filtered";
@@ -172,6 +190,23 @@ export async function runSeoCheck(options = {}) {
   }
   async function validatePage(path, kind = routeKind(new URL(path, base)), { fixtureTitle, fixtureBody } = {}) {
     const { response, body, url } = await request(path);
+    if (kind === "redirect") {
+      check(response.status === 308, `empty adult search permanently redirects with HTTP 308, received ${response.status}`, path);
+      const location = response.headers.get("location");
+      check(!!location, "empty adult search has a Location header", path);
+      if (location) {
+        try {
+          const destination = new URL(location, url);
+          const expected = new URL(canonicalPath(url), base);
+          check(destination.href === expected.href, "empty adult search redirects directly to its same-origin canonical landing", path);
+          // The canonical target is checked once by the ordinary page validator,
+          // including indexability, H1 and the intent-specific SSR guide.
+          enqueue(destination.href, "public", "empty search redirect target");
+          pages.push({ path, status: response.status, policy: "redirect", canonical: destination.href });
+        } catch { check(false, "empty adult search has a valid redirect destination", path); }
+      }
+      return null;
+    }
     // Removed member screens and out-of-range browse pages can correctly return 404.
     const allowedMissing = kind === "private" || kind === "filtered" && Number(url.searchParams.get("page")) > 1;
     const expectedStatus = kind === "missing" || allowedMissing && response.status === 404 ? 404 : 200;
@@ -207,6 +242,18 @@ export async function runSeoCheck(options = {}) {
       const related = ADULT_LANDINGS.find(landing => !landing.includes(`type=${url.searchParams.get("type")}`));
       check(html.links.some(link => { try { return comparable(new URL(link.href, siteOrigin)) === comparable(new URL(related, siteOrigin)); } catch { return false; } }), "adult landing links to the related selling or buying guide", path);
       adultGuides.set(intent, content);
+      const searchForm = html.forms.find(form => form.fields.some(([name]) => name === "q")
+        && new URL(form.action || url.href, url).pathname === "/pc-room");
+      if (check(!!searchForm, "adult landing contains its GET search form", path)) {
+        check(!searchForm.method || searchForm.method.toLowerCase() === "get", "adult search uses GET", path);
+        const submission = new URL(searchForm.action || url.href, url);
+        submission.search = new URLSearchParams(searchForm.fields).toString();
+        check(submission.origin === url.origin, "adult search form stays same-origin", path);
+        check(canonicalPath(submission) === canonicalPath(url), "default search form retains the current adult intent", path);
+        const submissionKind = routeKind(submission);
+        check(["public", "redirect"].includes(submissionKind), "default form submission preserves an indexable landing or canonical redirect", path);
+        if (["public", "redirect"].includes(submissionKind)) enqueue(submission.href, submissionKind, "actual adult search form");
+      }
     }
     check(html.named("viewport").some((value) => /width=device-width/.test(value)), "mobile viewport", path);
     check(html.canonical.length === 1, "exactly one canonical", path);
@@ -374,10 +421,15 @@ export async function runSeoCheck(options = {}) {
       enqueue(path, "filtered", "filter policy");
     }
     for (const landing of ADULT_LANDINGS) {
-      for (const suffix of ["&q=SEO", "&q=", "&region=서울", "&region=", "&sort=popular", "&sort=", "&unknown=1", "&page=1", "&page=2", "&type=BUY", "&category=ADULT"]) {
+      for (const suffix of ["&q=SEO", "&q=%20", "&q=&q=", "&q=&region=서울", "&q=&region=", "&q=&sort=popular", "&q=&sort=", "&q=&unknown=1", "&q=&page=1", "&q=&page=2", "&q=&type=BUY", "&q=&category=ADULT"]) {
         const path = landing + suffix;
         check(!sitemapUrls.has(comparable(new URL(path, siteOrigin))), "adult landing variation absent from sitemap", path);
         enqueue(path, "filtered", "adult landing boundary");
+      }
+      for (const suffix of ["&q=", "&q=&sort=latest"]) {
+        const path = landing + suffix;
+        check(!sitemapUrls.has(comparable(new URL(path, siteOrigin))), "empty search variation absent from sitemap", path);
+        enqueue(path, "redirect", "empty adult search regression");
       }
       enqueue(landing + "&sort=latest", "public", "default sort canonical regression");
     }
