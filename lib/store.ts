@@ -1,8 +1,9 @@
 import { env } from "cloudflare:workers";
 import type { Comment, Post, PostFilters, Profile } from "@/lib/types";
+import { observeD1Read } from "@/lib/observability";
 
 export class StorageUnavailableError extends Error {
-  constructor() { super("데이터베이스 연결이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요."); }
+  constructor() { super("데이터베이스 연결이 준비되지 않았습니다. 잠시 후 다시 시도해 주세요."); this.name = "StorageUnavailableError"; }
 }
 
 export function database(): D1Database {
@@ -43,8 +44,8 @@ export async function listPosts(filters: PostFilters = {}): Promise<{ posts: Pos
   const page = Math.min(1000, Math.max(1, Math.floor(filters.page ?? 1)));
   const offset = (page - 1) * limit;
   const [count, result] = await Promise.all([
-    db.prepare(`SELECT COUNT(*) AS total FROM posts p${where}`).bind(...values).first<{ total: number }>(),
-    db.prepare(`${postSelect}${where} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values, limit, offset).all<PostRow>(),
+    observeD1Read("listPosts.count", () => db.prepare(`SELECT COUNT(*) AS total FROM posts p${where}`).bind(...values).first<{ total: number }>()),
+    observeD1Read("listPosts.select", () => db.prepare(`${postSelect}${where} ORDER BY ${order} LIMIT ? OFFSET ?`).bind(...values, limit, offset).all<PostRow>()),
   ]);
   return { posts: result.results.map(mapPost), total: count?.total ?? 0 };
 }

@@ -1,4 +1,5 @@
 import { GuideLinks } from './GuideLinks';
+import './catalog-guide.css';
 
 type GuideIntent = "SELL" | "BUY";
 
@@ -77,6 +78,28 @@ export function AdultPcGuide({ intent }: { intent: GuideIntent }) {
     <section className="adult-guide-faq" aria-labelledby={`${headingId}-faq`}>
       <h3 id={`${headingId}-faq`}>자주 묻는 질문</h3>
       <div className="guide-faq-list">{guide.questions.map(([question, answer]) => <article key={question}><h4>{question}</h4><p>{answer}</p></article>)}</div>
+    </section>
+    <section className="adult-comparison-sheet" aria-labelledby={`${headingId}-record`}>
+      <h3 id={`${headingId}-record`}>{intent === 'SELL' ? '판매 글별 비교 메모 양식' : '구매 후보별 조건 메모 양식'}</h3>
+      <p>아래 항목을 개인 메모에 옮겨 사용하세요. 빈칸은 직접 확인한 내용만 채우고, 아직 확인하지 못한 항목은 미확인으로 남깁니다.</p>
+      <pre>{intent === 'SELL' ? [
+        '게시글 주소 / 확인 날짜:',
+        '지역·층수 / 면적 표기 기준 / 좌석 수:',
+        '보증금 / 월세 / 관리비 / 권리금:',
+        '포함 설비·수량 / 제외 물품:',
+        '희망 인계일 / 변경된 조건:',
+        '직접 확인한 내용 / 전달받은 설명:',
+        '추가 질문 / 아직 확인하지 못한 항목:',
+      ].join('\n') : [
+        '후보 게시글 주소 / 확인 날짜:',
+        '꼭 필요한 지역·규모 / 조정 가능한 조건:',
+        '보증금·권리금 등 항목별 예상 지출:',
+        '월세·관리비 등 매월 확인할 항목:',
+        '현장 확인 날짜 / 설비·수량 대조 결과:',
+        '희망 인계일 / 추가로 확인할 자료:',
+        '맞는 조건 / 다른 조건 / 미확인 항목:',
+      ].join('\n')}</pre>
+      <p>영업 형태와 게임물, 장비 상태의 확인 방법은 아래 정보글에서 원문 출처와 함께 볼 수 있습니다. 안내의 오류는 <a href="/contact" className="text-link">운영자에게 정정 요청</a>을 보내 주세요.</p>
     </section>
     <GuideLinks compact />
   </section>;

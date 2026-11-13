@@ -2,13 +2,16 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { mkdir, readFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { PUBLIC_PAGES } from "../lib/seo-routes.ts";
 
 const BOARDS = ["FREE", "TIPS", "NOTICE", "NEWS", "GAME", "CUSTOMER"];
 const CATEGORIES = { "pc-room": ["ADULT", "NORMAL", "OTHER"], market: ["PC", "MONITOR", "CHAIR", "OTHER"], job: ["HIRE", "RESUME"] };
 const TYPES = { "pc-room": ["SELL", "BUY"], market: ["SELL", "BUY"], job: ["HIRE", "RESUME"] };
 const ADULT_LANDINGS = ["/pc-room?type=SELL&category=ADULT", "/pc-room?type=BUY&category=ADULT"];
 const GUIDE_ARTICLES = ["/guides/adult-pc-business-and-game-check", "/guides/adult-pc-used-computer-check"];
-const PUBLIC = ["/", "/pc-room", "/market", "/job", ...BOARDS.map((name) => `/board/${name}`), "/slot", "/terms", "/privacy", ...ADULT_LANDINGS, "/guides", ...GUIDE_ARTICLES];
+// Follow the public-route registry so newly published pages receive the same
+// HTTP, metadata, canonical and structured-data checks as established pages.
+const PUBLIC = PUBLIC_PAGES.map(page => page.path);
 const PRIVATE = ["/join", "/mypage", "/write", "/admin"];
 const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]"]);
 

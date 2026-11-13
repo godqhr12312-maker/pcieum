@@ -180,7 +180,7 @@ for (const [label, config] of [
   });
 }
 
-test('security headers preserve hydration, Google Fonts, uploads and narrow Sites framing', async () => {
+test('security headers preserve hydration, self-hosted fonts, uploads and narrow Sites framing', async () => {
   const response = await withHttpPolicy(req(), renderer().render, settings);
   const csp = response.headers.get('content-security-policy');
   assert.equal(response.headers.get('strict-transport-security'), 'max-age=31536000');
@@ -189,8 +189,9 @@ test('security headers preserve hydration, Google Fonts, uploads and narrow Site
   assert.equal(response.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
   assert.match(response.headers.get('permissions-policy'), /camera=\(\).*microphone=\(\)/);
   assert.ok(!csp.match(/script-src[^;]*(?:unsafe-inline|unsafe-eval)/));
-  assert.match(csp, /style-src[^;]*fonts.googleapis.com/);
-  assert.match(csp, /font-src[^;]*fonts.gstatic.com/);
+  assert.match(csp, /(?:^|; )style-src 'self' 'unsafe-inline'(?:;|$)/);
+  assert.match(csp, /(?:^|; )font-src 'self' data:(?:;|$)/);
+  assert.doesNotMatch(csp, /fonts\.(?:googleapis|gstatic)\.com/);
   assert.match(csp, /img-src 'self' data: blob: https:/);
   assert.match(csp, /frame-ancestors 'self' https:\/\/chatgpt.com https:\/\/chat.openai.com/);
 });
