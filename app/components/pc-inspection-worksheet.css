@@ -1,0 +1,55 @@
+.pc-inspection-worksheet{padding-top:30px;border-top:1px solid var(--line);color:#3e4c61}
+.inspection-heading>p,.information-prose .inspection-storage-note,.information-prose .inspection-footnote{font-size:14px;line-height:1.9}
+.information-prose .inspection-storage-note{padding:14px 17px;border-radius:10px;background:#f0f3fb;color:#52617a;margin:0 0 18px}
+.inspection-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.inspection-actions .btn,.inspection-remove{font-size:14px;min-height:44px}
+.inspection-device-count{margin-left:auto;font-size:14px;color:#637087}
+.inspection-status{min-height:24px;margin:10px 0 14px;font-size:14px;line-height:1.7;color:#425b98}
+.inspection-devices{display:grid;gap:18px}
+.inspection-device{min-width:0;padding:21px;border:1px solid #dfe5ef;border-radius:14px;background:#fff}
+.inspection-device-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}
+.inspection-device-heading h3{margin:0;font-size:18px;color:#354159;line-height:1.6}
+.inspection-remove{border:0;border-radius:7px;padding:8px 10px;background:#f5f7fb;color:#52617a;font-weight:500}
+.inspection-remove:hover:not(:disabled){background:#edf1fa;color:#354b78}
+.inspection-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0;padding:0;min-width:0;border:0}
+.inspection-fields label{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:14px;font-weight:600;color:#43516a;line-height:1.7}
+.inspection-fields input,.inspection-fields select,.inspection-fields textarea{width:100%;max-width:100%;min-width:0;min-height:44px;border:1px solid #dce2ec;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;font-weight:400;line-height:1.6;color:#293448;background:white}
+.inspection-fields input::placeholder,.inspection-fields textarea::placeholder{color:#788399;opacity:1}
+.inspection-fields textarea{resize:vertical}
+.inspection-full-width{grid-column:1/-1}
+.information-prose .inspection-footnote{margin:18px 0 0;color:#637087}
+.inspection-print-values,.inspection-print-origin{display:none}
+@media(max-width:640px){
+  .pc-inspection-worksheet{padding-top:24px}
+  .inspection-device{padding:18px 15px}
+  .inspection-fields{grid-template-columns:1fr;gap:15px}
+  .inspection-fields input,.inspection-fields select,.inspection-fields textarea{font-size:16px}
+  .inspection-device-count{width:100%;margin-left:0}
+}
+@media print{
+  .pc-inspection-worksheet .inspection-screen-only{display:none!important}
+  .inspection-print-values{display:grid;grid-template-columns:1fr;gap:0;margin:0;font-size:11pt;line-height:1.65}
+  .inspection-print-values>div{display:grid;grid-template-columns:42mm minmax(0,1fr);gap:5mm;padding:3mm 0;border-top:1px solid #ddd}
+  .inspection-print-values dt{font-weight:700}
+  .inspection-print-values dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+  .inspection-device{break-inside:avoid;padding:5mm;margin-bottom:5mm;border:1px solid #aaa;border-radius:0}
+  .inspection-device-heading{margin-bottom:3mm}
+  .inspection-device-heading h3{font-size:13pt}
+  .inspection-devices{display:block}
+  .inspection-print-origin{display:block!important;margin-top:5mm!important;font-size:9pt!important;line-height:1.6;overflow-wrap:anywhere}
+  html[data-print-section="pc-inspection"] body{background:white;color:#111}
+  html[data-print-section="pc-inspection"] body>:not(main),
+  html[data-print-section="pc-inspection"] .information-guides>:not(.information-article),
+  html[data-print-section="pc-inspection"] .information-article>:not(.information-article-layout),
+  html[data-print-section="pc-inspection"] .information-article-layout>:not(.information-prose),
+  html[data-print-section="pc-inspection"] .information-prose>:not(.pc-inspection-worksheet){display:none!important}
+  html[data-print-section="pc-inspection"] main,
+  html[data-print-section="pc-inspection"] .information-guides,
+  html[data-print-section="pc-inspection"] .information-article,
+  html[data-print-section="pc-inspection"] .information-article-layout,
+  html[data-print-section="pc-inspection"] .information-prose,
+  html[data-print-section="pc-inspection"] .pc-inspection-worksheet{display:block;width:100%;max-width:none;margin:0;padding:0;border:0;box-shadow:none}
+  html[data-print-section="pc-inspection"] .pc-inspection-worksheet h2{font-size:18pt}
+  html[data-print-section="pc-inspection"] .inspection-heading>p,
+  html[data-print-section="pc-inspection"] .inspection-footnote{font-size:10pt;line-height:1.7}
+}

@@ -5,6 +5,7 @@ import { PageStructuredData } from '../../components/StructuredData';
 import { GUIDE_ARTICLES, guidePath } from '@/lib/guides';
 import { BRAND, dateText, jsonLd, origin } from '@/lib/config';
 import { createPageMetadata } from '@/lib/seo';
+import { PcInspectionWorksheet } from '../../components/PcInspectionWorksheet';
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -26,6 +27,7 @@ export default async function GuideArticlePage({ params }: Props) {
   const path = guidePath(article.slug);
   const url = `${base}${path}`;
   const related = GUIDE_ARTICLES.filter(item => item.slug !== article.slug);
+  const hasInspectionWorksheet = article.slug === 'adult-pc-used-computer-check';
   const articleBody = [...article.lead, ...article.sections.flatMap(section => [section.title, ...section.paragraphs, ...(section.points || [])]), ...article.checklist, article.scopeNote].join('\n\n');
   return <div className="container page-shell information-guides">
     <Breadcrumb items={[{ label: '성인pc 정보글', href: '/guides' }, { label: article.category }]} />
@@ -34,12 +36,12 @@ export default async function GuideArticlePage({ params }: Props) {
         <span className="guide-kicker">{article.category}</span>
         <h1 id="information-article-title">{article.title}</h1>
         <p className="information-deck">{article.description}</p>
-        <div className="information-byline"><a href="/about">작성 · {BRAND}</a><span>게시 <time dateTime={article.publishedAt}>{dateText(article.publishedAt)}</time></span><span>최종 확인 <time dateTime={article.updatedAt}>{dateText(article.updatedAt)}</time></span><a href="/editorial-policy">편집 기준</a><a href="/contact">오류·정정 문의</a></div>
+        <div className="information-byline"><a href="/about">작성 · {BRAND}</a><span>게시 <time dateTime={article.publishedAt}>{dateText(article.publishedAt)}</time></span><span>최종 수정 <time dateTime={article.updatedAt}>{dateText(article.updatedAt)}</time></span><span>출처 확인 <time dateTime={article.factCheckedAt}>{dateText(article.factCheckedAt)}</time></span><a href="/editorial-policy">편집 기준</a><a href="/contact">오류·정정 문의</a></div>
       </header>
       <div className="information-article-layout">
         <nav className="information-toc" aria-label="이 글의 목차">
           <h2>이 글에서 확인할 내용</h2>
-          <ol>{article.sections.map(section => <li key={section.id}><a href={`#${section.id}`}>{section.title}</a></li>)}<li><a href="#article-checklist">확인 항목 정리</a></li><li><a href="#article-sources">출처와 확인 범위</a></li></ol>
+          <ol>{article.sections.map(section => <li key={section.id}><a href={`#${section.id}`}>{section.title}</a></li>)}<li><a href="#article-checklist">확인 항목 정리</a></li>{hasInspectionWorksheet && <li><a href="#pc-inspection-worksheet">기기별 점검표 작성·인쇄</a></li>}<li><a href="#article-sources">출처와 확인 범위</a></li></ol>
         </nav>
         <div className="information-prose">
           <div className="information-lead">{article.lead.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>
@@ -57,6 +59,7 @@ export default async function GuideArticlePage({ params }: Props) {
             <h2 id="article-checklist-title">확인 항목 정리</h2>
             <ul>{article.checklist.map((item, index) => <li key={index}><span aria-hidden="true">✓</span><span>{item}</span></li>)}</ul>
           </section>
+          {hasInspectionWorksheet && <PcInspectionWorksheet />}
           <section className="information-sources information-section" id="article-sources" aria-labelledby="article-sources-title">
             <h2 id="article-sources-title">출처와 확인 범위</h2>
             <p>{article.scopeNote}</p>

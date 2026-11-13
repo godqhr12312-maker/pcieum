@@ -5,6 +5,7 @@ export type GuideArticle = {
   category: string;
   publishedAt: string;
   updatedAt: string;
+  factCheckedAt: string;
   lead: string[];
   sections: { id: string; title: string; paragraphs: string[]; points?: string[]; sourceIds?: string[] }[];
   checklist: string[];
@@ -22,6 +23,7 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
     category: '영업·게임물 확인',
     publishedAt: '2026-11-10',
     updatedAt: '2026-11-10',
+    factCheckedAt: '2026-11-10',
     lead: [
       '성인pc 매물 설명에서 먼저 확인할 것은 해당 장소의 영업 형태와 제공하는 게임입니다. 간판이나 광고에 쓰인 명칭만으로 필요한 허가·등록이나 게임의 적법성을 판단하기 어렵습니다.',
       '이 글은 국가법령정보센터와 법제처의 안내를 바탕으로, 계약을 검토하는 사람이 확인할 자료를 정리한 정보글입니다. 아래 확인 순서와 메모 항목은 피씨이음이 제안하는 점검 방법입니다.',
@@ -89,10 +91,11 @@ export const GUIDE_ARTICLES: readonly GuideArticle[] = [
   {
     slug: 'adult-pc-used-computer-check',
     title: '성인pc 중고 PC 인수 점검: 사양·Windows·저장장치',
-    description: '성인pc 매장이나 중고 PC 인수 전에 CPU·RAM, SSD 상태, Windows 정품 인증과 인계 조건을 확인하는 순서를 Microsoft 공식 문서에 근거해 안내합니다.',
+    description: '성인pc 매장이나 중고 PC 인수 전에 CPU·RAM, SSD 상태, Windows 정품 인증과 인계 조건을 확인하는 순서를 Microsoft 공식 문서에 근거해 안내합니다. 기기별 점검표도 작성·인쇄할 수 있습니다.',
     category: '장비·Windows 점검',
     publishedAt: '2026-11-10',
-    updatedAt: '2026-11-10',
+    updatedAt: '2026-11-13',
+    factCheckedAt: '2026-11-10',
     lead: [
       '중고 PC를 여러 대 인수할 때는 같은 외관이나 판매 설명만으로 전체 사양을 판단하기 쉽습니다. 기기별로 실제 설정 화면을 확인하고, 저장 공간·저장장치 상태·Windows 사용 조건을 나누어 기록해 보세요.',
       '아래 메뉴 경로는 Windows 11 기준이며 버전과 장치 구성에 따라 표시가 달라질 수 있습니다. Microsoft 공식 안내를 바탕으로 정리한 점검 방법으로, 특정 매물의 상태나 성능을 시험한 결과는 아닙니다.',

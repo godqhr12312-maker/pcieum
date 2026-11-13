@@ -65,7 +65,7 @@ export const PAGE_METADATA: readonly PublicPage[] = [
     "path": "/guides",
     "title": "성인pc 정보글 · 구매·운영 확인 가이드",
     "description": "성인pc를 알아볼 때 필요한 영업 형태와 게임물 등급, 중고 PC 사양·Windows·저장장치 확인 방법을 공식 출처와 함께 살펴보세요.",
-    "lastModified": "2026-11-10"
+    "lastModified": "2026-11-13"
   },
   {
     "path": "/guides/adult-pc-business-and-game-check",
@@ -76,8 +76,8 @@ export const PAGE_METADATA: readonly PublicPage[] = [
   {
     "path": "/guides/adult-pc-used-computer-check",
     "title": "성인pc 중고 PC 인수 점검: 사양·Windows·저장장치",
-    "description": "성인pc 매장이나 중고 PC 인수 전에 CPU·RAM, SSD 상태, Windows 정품 인증과 인계 조건을 확인하는 순서를 Microsoft 공식 문서에 근거해 안내합니다.",
-    "lastModified": "2026-11-10"
+    "description": "성인pc 매장이나 중고 PC 인수 전에 CPU·RAM, SSD 상태, Windows 정품 인증과 인계 조건을 확인하는 순서를 Microsoft 공식 문서에 근거해 안내합니다. 기기별 점검표도 작성·인쇄할 수 있습니다.",
+    "lastModified": "2026-11-13"
   },
   {
     "path": "/",
